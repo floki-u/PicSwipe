@@ -1,0 +1,526 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		18335D2882308D0E83BBF5C3 /* PicSwipeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B00AC88C2DE0C14847246B5 /* PicSwipeTests.swift */; };
+		6DDF010EAE79806255D66151 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6239D5687539B08F700B69E3 /* ContentView.swift */; };
+		8C74665DCD602C2CFC1AB3D4 /* PicSwipeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1370713BA9053FD6F1FB62A /* PicSwipeUITests.swift */; };
+		D17A081C503AAF4320474DCC /* PicSwipeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C5A81B0C759532F156A5987 /* PicSwipeApp.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		146D90E074AD4B1D429054B9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9611E872DDEA149747627FAD /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A626B8E4254732E7FBEA0D89;
+			remoteInfo = PicSwipe;
+		};
+		E7DDF82960886E8AB45AF5B0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9611E872DDEA149747627FAD /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A626B8E4254732E7FBEA0D89;
+			remoteInfo = PicSwipe;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		2C5A81B0C759532F156A5987 /* PicSwipeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PicSwipeApp.swift; sourceTree = "<group>"; };
+		6239D5687539B08F700B69E3 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		62764CD9092A15154A43CEAE /* PicSwipeTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PicSwipeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		6B00AC88C2DE0C14847246B5 /* PicSwipeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PicSwipeTests.swift; sourceTree = "<group>"; };
+		7F75D1927A71BE16E1473C44 /* PicSwipe.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PicSwipe.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CAD673FBB45FCBC42CB90E66 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		CF166AF87817968E70FBEA35 /* PicSwipe.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PicSwipe.entitlements; sourceTree = "<group>"; };
+		E1370713BA9053FD6F1FB62A /* PicSwipeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PicSwipeUITests.swift; sourceTree = "<group>"; };
+		F1060B6E89BEC5C7BD909462 /* PicSwipeUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PicSwipeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		0A0708CAAA0AEE12991D8B3C /* PicSwipeTests */ = {
+			isa = PBXGroup;
+			children = (
+				6B00AC88C2DE0C14847246B5 /* PicSwipeTests.swift */,
+			);
+			path = PicSwipeTests;
+			sourceTree = "<group>";
+		};
+		16B6DE1420680819B6DFB6FB /* PicSwipe */ = {
+			isa = PBXGroup;
+			children = (
+				CAD673FBB45FCBC42CB90E66 /* Info.plist */,
+				CF166AF87817968E70FBEA35 /* PicSwipe.entitlements */,
+				454BEF1868633F6869AB41A9 /* App */,
+				AAD134504B84319C97C16418 /* Views */,
+			);
+			path = PicSwipe;
+			sourceTree = "<group>";
+		};
+		21007941588CEB1AEE0BD38E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7F75D1927A71BE16E1473C44 /* PicSwipe.app */,
+				62764CD9092A15154A43CEAE /* PicSwipeTests.xctest */,
+				F1060B6E89BEC5C7BD909462 /* PicSwipeUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		454BEF1868633F6869AB41A9 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				2C5A81B0C759532F156A5987 /* PicSwipeApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		50ED325310AAB05EA9C9E9B6 /* PicSwipeUITests */ = {
+			isa = PBXGroup;
+			children = (
+				E1370713BA9053FD6F1FB62A /* PicSwipeUITests.swift */,
+			);
+			path = PicSwipeUITests;
+			sourceTree = "<group>";
+		};
+		AAD134504B84319C97C16418 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				6239D5687539B08F700B69E3 /* ContentView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		C5DE16E7205A79AB456322B3 = {
+			isa = PBXGroup;
+			children = (
+				16B6DE1420680819B6DFB6FB /* PicSwipe */,
+				0A0708CAAA0AEE12991D8B3C /* PicSwipeTests */,
+				50ED325310AAB05EA9C9E9B6 /* PicSwipeUITests */,
+				21007941588CEB1AEE0BD38E /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		404678C7E731971D01B70CA0 /* PicSwipeUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7CA239BB1ACC252F307D0B71 /* Build configuration list for PBXNativeTarget "PicSwipeUITests" */;
+			buildPhases = (
+				3BE4BEBBFD907D19AEF73F07 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C63EA2F78B93C2854B643A18 /* PBXTargetDependency */,
+			);
+			name = PicSwipeUITests;
+			packageProductDependencies = (
+			);
+			productName = PicSwipeUITests;
+			productReference = F1060B6E89BEC5C7BD909462 /* PicSwipeUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		A626B8E4254732E7FBEA0D89 /* PicSwipe */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 36EDDF77CBFE703B5A279DFD /* Build configuration list for PBXNativeTarget "PicSwipe" */;
+			buildPhases = (
+				E8DD0E29ADD49FA8D0CECF41 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PicSwipe;
+			packageProductDependencies = (
+			);
+			productName = PicSwipe;
+			productReference = 7F75D1927A71BE16E1473C44 /* PicSwipe.app */;
+			productType = "com.apple.product-type.application";
+		};
+		DB704689CA2FEB264945343E /* PicSwipeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 40CABB066ADCD115D1D461C6 /* Build configuration list for PBXNativeTarget "PicSwipeTests" */;
+			buildPhases = (
+				4E1437D5FA121205332F71E5 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B1E4B57069D4A8BBA2BF49A1 /* PBXTargetDependency */,
+			);
+			name = PicSwipeTests;
+			packageProductDependencies = (
+			);
+			productName = PicSwipeTests;
+			productReference = 62764CD9092A15154A43CEAE /* PicSwipeTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		9611E872DDEA149747627FAD /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1510;
+				TargetAttributes = {
+					404678C7E731971D01B70CA0 = {
+						TestTargetID = A626B8E4254732E7FBEA0D89;
+					};
+					A626B8E4254732E7FBEA0D89 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = A5B5D0EE1BF8ED465F754C8E /* Build configuration list for PBXProject "PicSwipe" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = C5DE16E7205A79AB456322B3;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 21007941588CEB1AEE0BD38E /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A626B8E4254732E7FBEA0D89 /* PicSwipe */,
+				DB704689CA2FEB264945343E /* PicSwipeTests */,
+				404678C7E731971D01B70CA0 /* PicSwipeUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		3BE4BEBBFD907D19AEF73F07 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8C74665DCD602C2CFC1AB3D4 /* PicSwipeUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4E1437D5FA121205332F71E5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				18335D2882308D0E83BBF5C3 /* PicSwipeTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E8DD0E29ADD49FA8D0CECF41 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6DDF010EAE79806255D66151 /* ContentView.swift in Sources */,
+				D17A081C503AAF4320474DCC /* PicSwipeApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B1E4B57069D4A8BBA2BF49A1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A626B8E4254732E7FBEA0D89 /* PicSwipe */;
+			targetProxy = 146D90E074AD4B1D429054B9 /* PBXContainerItemProxy */;
+		};
+		C63EA2F78B93C2854B643A18 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A626B8E4254732E7FBEA0D89 /* PicSwipe */;
+			targetProxy = E7DDF82960886E8AB45AF5B0 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		5650041F5B8AE2E43CDDE647 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = PicSwipe/PicSwipe.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = PicSwipe/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.picswipe.app;
+				PRODUCT_NAME = PicSwipe;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		758E2D1DA1CD0436EDC5BE6D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.picswipe.app.tests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PicSwipe.app/PicSwipe";
+			};
+			name = Debug;
+		};
+		9096CE3C710DFACD854DF795 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.picswipe.app.uitests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = PicSwipe;
+			};
+			name = Debug;
+		};
+		944AC472F6DBA39222DDC6FD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		9CC89FBB81DE2B0700F92E99 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = PicSwipe/PicSwipe.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = PicSwipe/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.picswipe.app;
+				PRODUCT_NAME = PicSwipe;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AE4C77824ECA7FECBFBDA7F7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.picswipe.app.uitests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = PicSwipe;
+			};
+			name = Release;
+		};
+		CAF75E14C1497C7262703965 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		DECF4C2C2E9818AC3CC4D8B5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.picswipe.app.tests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PicSwipe.app/PicSwipe";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		36EDDF77CBFE703B5A279DFD /* Build configuration list for PBXNativeTarget "PicSwipe" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9CC89FBB81DE2B0700F92E99 /* Debug */,
+				5650041F5B8AE2E43CDDE647 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		40CABB066ADCD115D1D461C6 /* Build configuration list for PBXNativeTarget "PicSwipeTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				758E2D1DA1CD0436EDC5BE6D /* Debug */,
+				DECF4C2C2E9818AC3CC4D8B5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		7CA239BB1ACC252F307D0B71 /* Build configuration list for PBXNativeTarget "PicSwipeUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9096CE3C710DFACD854DF795 /* Debug */,
+				AE4C77824ECA7FECBFBDA7F7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A5B5D0EE1BF8ED465F754C8E /* Build configuration list for PBXProject "PicSwipe" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CAF75E14C1497C7262703965 /* Debug */,
+				944AC472F6DBA39222DDC6FD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 9611E872DDEA149747627FAD /* Project object */;
+}
