@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import UIKit
 
 // MARK: - HomeView
 
@@ -21,6 +22,7 @@ struct HomeView: View {
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: Spacing.md) {
                     heroSection
+                    limitedAccessBanner
                     storageCapsule
                     startCleaningCard
                     dataCardRow
@@ -81,6 +83,37 @@ struct HomeView: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, Spacing.xl)
+        }
+    }
+
+    // MARK: - Limited Access 横幅
+
+    @ViewBuilder
+    private var limitedAccessBanner: some View {
+        if photoService.isLimited {
+            Button(action: {
+                // Open limited library picker
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let rootVC = windowScene.windows.first?.rootViewController {
+                    photoService.presentLimitedLibraryPicker(from: rootVC)
+                }
+            }) {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(Color.warningYellow)
+                    Text("你只授权了部分照片，点击管理权限")
+                        .font(.caption)
+                        .foregroundStyle(.white)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption2)
+                        .foregroundStyle(Color.textMuted)
+                }
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, Spacing.sm)
+                .background(Color.warningYellow.opacity(0.15))
+                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.chip))
+            }
         }
     }
 
