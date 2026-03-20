@@ -60,6 +60,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.picswipe.app.tests
         SWIFT_VERSION: "5.9"
+        GENERATE_INFOPLIST_FILE: YES
 
   PicSwipeUITests:
     type: bundle.ui-testing
@@ -75,6 +76,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.picswipe.app.uitests
         SWIFT_VERSION: "5.9"
+        GENERATE_INFOPLIST_FILE: YES
 
 schemes:
   PicSwipe:
