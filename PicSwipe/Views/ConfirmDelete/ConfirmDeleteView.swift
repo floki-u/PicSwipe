@@ -297,9 +297,11 @@ struct ConfirmDeleteView: View {
                 mode: cleanSession?.mode ?? .photo,
                 in: modelContext
             )
+            HapticService.deleteSuccess()
             cleanSession = nil
             path.append(AppDestination.result(deletedCount: deletedCount, freedSpace: freedSpace))
         } catch {
+            HapticService.deleteError()
             // 删除失败也跳转到结果页（显示 0）
             path.append(AppDestination.result(deletedCount: 0, freedSpace: 0))
         }

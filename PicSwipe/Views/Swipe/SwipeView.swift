@@ -12,6 +12,7 @@ struct SwipeView: View {
     @Environment(PhotoLibraryService.self) private var photoService
     @Environment(StatisticsService.self) private var statsService
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var vm = SwipeViewModel()
     @State private var isLoading = true
@@ -240,6 +241,15 @@ struct SwipeView: View {
             .onChanged { value in
                 vm.dragOffset = value.translation
                 vm.dragDirection = vm.detectDirection(translation: value.translation)
+
+                // 越过阈值时触发触觉
+                let overThreshold = vm.isOverThreshold(
+                    translation: value.translation,
+                    screenSize: screenSize
+                )
+                if overThreshold {
+                    HapticService.thresholdReached(direction: vm.dragDirection)
+                }
             }
             .onEnded { value in
                 let direction = vm.detectDirection(translation: value.translation)
@@ -249,6 +259,7 @@ struct SwipeView: View {
                 )
 
                 if overThreshold {
+                    HapticService.gestureTriggered()
                     switch direction {
                     case .up:
                         triggerKeep(screenSize: screenSize)
@@ -268,34 +279,61 @@ struct SwipeView: View {
     // MARK: - 触发动作
 
     private func triggerKeep(screenSize: CGSize) {
-        // 飞出动画
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-            vm.dragOffset = CGSize(width: 0, height: -screenSize.height)
-        }
-        // 绿色闪光
-        showKeepFlash = true
-        // 延迟后执行动作
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-            vm.keepCurrent()
-            showKeepFlash = false
+        if reduceMotion {
+            // 无障碍模式：简单淡出替代飞出动画
+            withAnimation(.easeOut(duration: 0.25)) {
+                showKeepFlash = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                vm.keepCurrent()
+                showKeepFlash = false
+            }
+        } else {
+            // 飞出动画
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                vm.dragOffset = CGSize(width: 0, height: -screenSize.height)
+            }
+            // 绿色闪光
+            showKeepFlash = true
+            // 延迟后执行动作
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                vm.keepCurrent()
+                showKeepFlash = false
+            }
         }
     }
 
     private func triggerDelete(screenSize: CGSize) {
-        // 飞出动画
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-            vm.dragOffset = CGSize(width: -screenSize.width, height: 0)
-        }
-        // 红色闪光
-        showDeleteFlash = true
-        // 延迟后执行动作
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-            vm.deleteCurrent()
-            showDeleteFlash = false
+        if reduceMotion {
+            // 无障碍模式：简单淡出替代飞出动画
+            withAnimation(.easeOut(duration: 0.25)) {
+                showDeleteFlash = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                vm.deleteCurrent()
+                showDeleteFlash = false
+            }
+        } else {
+            // 飞出动画
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                vm.dragOffset = CGSize(width: -screenSize.width, height: 0)
+            }
+            // 红色闪光
+            showDeleteFlash = true
+            // 延迟后执行动作
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                vm.deleteCurrent()
+                showDeleteFlash = false
+            }
         }
     }
 
     private func triggerGoBack() {
+        guard vm.currentIndex > 0 else {
+            HapticService.boundaryReached()
+            snapBack()
+            return
+        }
         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
             vm.goBack()
         }
