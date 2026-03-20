@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PicSwipe 设置页方案</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    background: #0a0a0a; color: #fff; padding: 20px; min-height: 100vh;
+  }
+  h1 { text-align:center; font-size:28px; margin:20px 0 8px; font-weight:700; }
+  .subtitle { text-align:center; color:#888; font-size:15px; margin-bottom:30px; }
+
+  .layouts { display:flex; gap:32px; justify-content:center; flex-wrap:wrap; max-width:900px; margin:0 auto; padding-bottom:40px; }
+
+  .layout-option {
+    cursor:pointer; transition:all 0.3s; border-radius:20px; overflow:hidden;
+    border:3px solid transparent; background:#1a1a1a; width:320px;
+  }
+  .layout-option:hover { border-color:#43e97b; transform:translateY(-4px); }
+  .layout-option.selected { border-color:#43e97b; box-shadow:0 0 30px rgba(67,233,123,0.3); }
+
+  .option-label { padding:16px 20px; background:#1a1a1a; display:flex; align-items:center; gap:12px; }
+  .option-badge {
+    width:32px; height:32px; border-radius:50%;
+    background:linear-gradient(135deg,#43e97b,#38f9d7);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:15px; color:#000; flex-shrink:0;
+  }
+  .option-title { font-size:17px; font-weight:600; }
+  .option-desc { font-size:12px; color:#888; margin-top:2px; }
+  .selected-text { display:none; text-align:center; margin:8px 0; font-size:13px; color:#43e97b; font-weight:600; }
+  .layout-option.selected .selected-text { display:block; }
+
+  .phone-frame {
+    width:280px; height:570px; background:#000; border-radius:36px;
+    margin:0 auto 16px; padding:12px; position:relative;
+  }
+  .phone-screen { width:100%; height:100%; border-radius:26px; overflow:hidden; position:relative; }
+  .phone-notch { width:100px; height:28px; background:#000; border-radius:0 0 16px 16px; position:absolute; top:0; left:50%; transform:translateX(-50%); z-index:10; }
+  .home-indicator { width:120px; height:4px; background:rgba(255,255,255,0.2); border-radius:2px; position:absolute; bottom:8px; left:50%; transform:translateX(-50%); }
+
+  /* ===== Screen A: iOS Native Style ===== */
+  .screen-a { background:#111; color:#fff; }
+  .sa-header { padding:48px 16px 12px; }
+  .sa-header .back { font-size:13px; color:#43e97b; }
+  .sa-header h2 { font-size:28px; font-weight:800; margin-top:4px; }
+
+  .sa-group { margin:0 16px 14px; }
+  .sa-group-title { font-size:11px; color:#666; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; padding-left:4px; }
+  .sa-group-box { background:rgba(255,255,255,0.06); border-radius:12px; overflow:hidden; }
+  .sa-row {
+    padding:11px 14px; display:flex; justify-content:space-between; align-items:center;
+    border-bottom:1px solid rgba(255,255,255,0.05);
+  }
+  .sa-row:last-child { border-bottom:none; }
+  .sa-row .left { display:flex; align-items:center; gap:10px; }
+  .sa-row .ico { font-size:16px; width:28px; height:28px; border-radius:7px; display:flex; align-items:center; justify-content:center; }
+  .sa-row .ico.green { background:rgba(67,233,123,0.15); }
+  .sa-row .ico.blue { background:rgba(52,152,219,0.15); }
+  .sa-row .ico.orange { background:rgba(255,149,0,0.15); }
+  .sa-row .ico.purple { background:rgba(155,89,182,0.15); }
+  .sa-row .ico.red { background:rgba(255,69,58,0.15); }
+  .sa-row .label { font-size:13px; }
+  .sa-row .right { font-size:12px; color:#888; display:flex; align-items:center; gap:4px; }
+  .sa-row .chevron { color:#555; font-size:11px; }
+
+  .sa-toggle-track {
+    width:40px; height:24px; border-radius:12px; background:rgba(255,255,255,0.15); position:relative;
+  }
+  .sa-toggle-track.on { background:#43e97b; }
+  .sa-toggle-thumb {
+    width:20px; height:20px; border-radius:50%; background:#fff;
+    position:absolute; top:2px; left:2px; transition:left 0.2s;
+  }
+  .sa-toggle-track.on .sa-toggle-thumb { left:18px; }
+
+  .sa-version { text-align:center; margin-top:12px; font-size:11px; color:#555; }
+
+  /* ===== Screen B: Card Based ===== */
+  .screen-b { background:#111; color:#fff; }
+  .sb-header {
+    padding:48px 16px 0; display:flex; justify-content:space-between; align-items:center;
+  }
+  .sb-header .back { font-size:16px; opacity:0.7; }
+  .sb-header h3 { font-size:18px; font-weight:700; }
+
+  .sb-profile-card {
+    margin:14px 16px; padding:16px;
+    background:linear-gradient(135deg, rgba(67,233,123,0.1), rgba(56,249,215,0.05));
+    border:1px solid rgba(67,233,123,0.15); border-radius:18px;
+    display:flex; align-items:center; gap:14px;
+  }
+  .sb-app-icon {
+    width:50px; height:50px; border-radius:14px;
+    background:linear-gradient(135deg,#43e97b,#38f9d7);
+    display:flex; align-items:center; justify-content:center; font-size:24px;
+  }
+  .sb-app-info h4 { font-size:15px; font-weight:700; }
+  .sb-app-info .ver { font-size:11px; color:#888; }
+
+  .sb-card {
+    margin:0 16px 10px; background:rgba(255,255,255,0.06); border-radius:16px; padding:14px;
+  }
+  .sb-card-title { font-size:12px; color:#888; font-weight:600; margin-bottom:10px; }
+
+  .sb-batch-options { display:flex; gap:8px; }
+  .sb-batch-opt {
+    flex:1; padding:10px 0; border-radius:12px; text-align:center;
+    background:rgba(255,255,255,0.06); font-size:16px; font-weight:700; color:#aaa;
+  }
+  .sb-batch-opt.active {
+    background:linear-gradient(135deg,#43e97b,#38f9d7); color:#000;
+  }
+  .sb-batch-label { font-size:9px; color:#888; text-align:center; margin-top:4px; }
+
+  .sb-item-row {
+    display:flex; justify-content:space-between; align-items:center; padding:8px 0;
+    border-bottom:1px solid rgba(255,255,255,0.05);
+  }
+  .sb-item-row:last-child { border-bottom:none; }
+  .sb-item-row .left { display:flex; align-items:center; gap:8px; font-size:13px; }
+  .sb-item-row .ico { font-size:16px; }
+  .sb-item-row .right { font-size:12px; color:#43e97b; }
+
+  .sb-history-preview {
+    display:flex; gap:8px; margin-top:8px;
+  }
+  .sb-history-bar {
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:2px;
+  }
+  .sb-history-bar .bar {
+    width:100%; border-radius:4px 4px 0 0;
+    background:linear-gradient(180deg, #43e97b, #38f9d7); opacity:0.6;
+  }
+  .sb-history-bar .day { font-size:8px; color:#666; }
+
+  @media (max-width:700px) { .layouts { flex-direction:column; align-items:center; } }
+</style>
+<script>
+  function selectOption(el) {
+    document.querySelectorAll('.layout-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    const choice = el.dataset.choice;
+    fetch('/event', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({type:'click',choice,text:el.querySelector('.option-title')?.textContent||'',timestamp:Date.now()})
+    }).catch(()=>{});
+  }
+</script>
+</head>
+<body>
+
+<h1>⚙️ 设置页方案</h1>
+<p class="subtitle">App 设置、历史记录和关于信息</p>
+
+<div class="layouts">
+
+  <!-- ===== A: iOS Native Style ===== -->
+  <div class="layout-option" data-choice="a" onclick="selectOption(this)">
+    <div class="phone-frame">
+      <div class="phone-screen screen-a">
+        <div class="phone-notch"></div>
+
+        <div class="sa-header">
+          <div class="back">‹ 返回</div>
+          <h2>设置</h2>
+        </div>
+
+        <div class="sa-group">
+          <div class="sa-group-title">清理设置</div>
+          <div class="sa-group-box">
+            <div class="sa-row">
+              <div class="left">
+                <div class="ico green">📷</div>
+                <span class="label">每组数量</span>
+              </div>
+              <div class="right">20 张 <span class="chevron">›</span></div>
+            </div>
+            <div class="sa-row">
+              <div class="left">
+                <div class="ico blue">👆</div>
+                <span class="label">重播手势教程</span>
+              </div>
+              <div class="right"><span class="chevron">›</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sa-group">
+          <div class="sa-group-title">数据</div>
+          <div class="sa-group-box">
+            <div class="sa-row">
+              <div class="left">
+                <div class="ico orange">📊</div>
+                <span class="label">清理历史</span>
+              </div>
+              <div class="right">12 次 <span class="chevron">›</span></div>
+            </div>
+            <div class="sa-row">
+              <div class="left">
+                <div class="ico purple">🔒</div>
+                <span class="label">相册权限</span>
+              </div>
+              <div class="right">完全访问 <span class="chevron">›</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sa-group">
+          <div class="sa-group-title">关于</div>
+          <div class="sa-group-box">
+            <div class="sa-row">
+              <div class="left">
+                <div class="ico red">ℹ️</div>
+                <span class="label">版本</span>
+              </div>
+              <div class="right">1.0.0</div>
+            </div>
+            <div class="sa-row">
+              <div class="left">
+                <div class="ico green">🌿</div>
+                <span class="label">隐私政策</span>
+              </div>
+              <div class="right"><span class="chevron">›</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sa-version">Made with 💚 by PicSwipe</div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+    <div class="option-label">
+      <div class="option-badge">A</div>
+      <div>
+        <div class="option-title">iOS 原生风</div>
+        <div class="option-desc">经典分组列表，Apple 设置页的熟悉布局</div>
+      </div>
+    </div>
+    <div class="selected-text">✓ 已选择</div>
+  </div>
+
+  <!-- ===== B: Card Based ===== -->
+  <div class="layout-option" data-choice="b" onclick="selectOption(this)">
+    <div class="phone-frame">
+      <div class="phone-screen screen-b">
+        <div class="phone-notch"></div>
+
+        <div class="sb-header">
+          <span class="back">‹</span>
+          <h3>设置</h3>
+        </div>
+
+        <div class="sb-profile-card">
+          <div class="sb-app-icon">🌿</div>
+          <div class="sb-app-info">
+            <h4>PicSwipe</h4>
+            <div class="ver">版本 1.0.0 · 完全访问</div>
+          </div>
+        </div>
+
+        <div class="sb-card">
+          <div class="sb-card-title">每组数量</div>
+          <div class="sb-batch-options">
+            <div class="sb-batch-opt">10</div>
+            <div class="sb-batch-opt active">20</div>
+            <div class="sb-batch-opt">30</div>
+            <div class="sb-batch-opt">50</div>
+          </div>
+          <div class="sb-batch-label">每次清理随机抽取的照片数量</div>
+        </div>
+
+        <div class="sb-card">
+          <div class="sb-card-title">清理历史</div>
+          <div class="sb-history-preview">
+            <div class="sb-history-bar"><div class="bar" style="height:20px;"></div><div class="day">周一</div></div>
+            <div class="sb-history-bar"><div class="bar" style="height:35px;"></div><div class="day">周二</div></div>
+            <div class="sb-history-bar"><div class="bar" style="height:15px;"></div><div class="day">周三</div></div>
+            <div class="sb-history-bar"><div class="bar" style="height:45px;"></div><div class="day">周四</div></div>
+            <div class="sb-history-bar"><div class="bar" style="height:25px;"></div><div class="day">周五</div></div>
+            <div class="sb-history-bar"><div class="bar" style="height:50px;"></div><div class="day">周六</div></div>
+            <div class="sb-history-bar"><div class="bar" style="height:30px;"></div><div class="day">周日</div></div>
+          </div>
+          <div class="sb-item-row">
+            <div class="left"><span class="ico">📊</span> 查看完整记录</div>
+            <div class="right">›</div>
+          </div>
+        </div>
+
+        <div class="sb-card">
+          <div class="sb-card-title">其他</div>
+          <div class="sb-item-row">
+            <div class="left"><span class="ico">👆</span> 重播手势教程</div>
+            <div class="right">›</div>
+          </div>
+          <div class="sb-item-row">
+            <div class="left"><span class="ico">🔒</span> 相册权限</div>
+            <div class="right">›</div>
+          </div>
+          <div class="sb-item-row">
+            <div class="left"><span class="ico">🌿</span> 隐私政策</div>
+            <div class="right">›</div>
+          </div>
+        </div>
+
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+    <div class="option-label">
+      <div class="option-badge">B</div>
+      <div>
+        <div class="option-title">卡片可视化</div>
+        <div class="option-desc">品牌卡片+直接选择数量+迷你历史图表</div>
+      </div>
+    </div>
+    <div class="selected-text">✓ 已选择</div>
+  </div>
+
+</div>
+</body>
+</html>

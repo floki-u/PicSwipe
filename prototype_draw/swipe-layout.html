@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PicSwipe 滑动浏览页方案</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    background: #0a0a0a; color: #fff; padding: 20px; min-height: 100vh;
+  }
+  h1 { text-align:center; font-size:28px; margin:20px 0 8px; font-weight:700; }
+  .subtitle { text-align:center; color:#888; font-size:15px; margin-bottom:30px; }
+
+  .layouts { display:flex; gap:32px; justify-content:center; flex-wrap:wrap; max-width:1200px; margin:0 auto; padding-bottom:40px; }
+
+  .layout-option {
+    cursor:pointer; transition:all 0.3s; border-radius:20px; overflow:hidden;
+    border:3px solid transparent; background:#1a1a1a; width:320px;
+  }
+  .layout-option:hover { border-color:#43e97b; transform:translateY(-4px); }
+  .layout-option.selected { border-color:#43e97b; box-shadow:0 0 30px rgba(67,233,123,0.3); }
+
+  .option-label { padding:16px 20px; background:#1a1a1a; display:flex; align-items:center; gap:12px; }
+  .option-badge {
+    width:32px; height:32px; border-radius:50%;
+    background:linear-gradient(135deg,#43e97b,#38f9d7);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:15px; color:#000; flex-shrink:0;
+  }
+  .option-title { font-size:17px; font-weight:600; }
+  .option-desc { font-size:12px; color:#888; margin-top:2px; }
+  .selected-text { display:none; text-align:center; margin:8px 0; font-size:13px; color:#43e97b; font-weight:600; }
+  .layout-option.selected .selected-text { display:block; }
+
+  /* Phone */
+  .phone-frame {
+    width:280px; height:570px; background:#000; border-radius:36px;
+    margin:0 auto 16px; padding:12px; position:relative;
+  }
+  .phone-screen { width:100%; height:100%; border-radius:26px; overflow:hidden; position:relative; }
+  .phone-notch { width:100px; height:28px; background:#000; border-radius:0 0 16px 16px; position:absolute; top:0; left:50%; transform:translateX(-50%); z-index:10; }
+  .home-indicator { width:120px; height:4px; background:rgba(255,255,255,0.3); border-radius:2px; position:absolute; bottom:8px; left:50%; transform:translateX(-50%); }
+
+  /* ===== Shared: photo placeholder ===== */
+  .photo-bg {
+    position:absolute; inset:0;
+    background: linear-gradient(135deg, #2a5a3a 0%, #1a3a4a 40%, #2a4a5a 70%, #1a3a2a 100%);
+  }
+  .photo-bg::after {
+    content:''; position:absolute; inset:0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cdefs%3E%3ClinearGradient id='sky' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%234a8ab5'/%3E%3Cstop offset='1' stop-color='%2387ceeb'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill='url(%23sky)' width='200' height='120'/%3E%3Cellipse cx='100' cy='130' rx='120' ry='40' fill='%2345a049'/%3E%3Cellipse cx='60' cy='125' rx='80' ry='50' fill='%233d8b40'/%3E%3Ccircle cx='150' cy='40' r='20' fill='%23FDB813' opacity='0.9'/%3E%3Cellipse cx='50' cy='30' rx='25' ry='10' fill='white' opacity='0.6'/%3E%3Cellipse cx='140' cy='25' rx='20' ry='8' fill='white' opacity='0.4'/%3E%3Ccircle cx='85' cy='110' r='12' fill='%23e74c3c'/%3E%3Ccircle cx='115' cy='105' r='10' fill='%23f39c12'/%3E%3Crect x='83' y='112' width='4' height='20' fill='%23795548'/%3E%3Crect x='113' y='107' width='3' height='18' fill='%23795548'/%3E%3C/svg%3E") center/cover;
+    opacity:0.5;
+  }
+
+  /* ===== Style A: Minimal Clean ===== */
+  .screen-a .top-bar {
+    position:absolute; top:44px; left:0; right:0; z-index:5;
+    padding:0 16px; display:flex; justify-content:space-between; align-items:center;
+    font-size:13px; font-weight:600;
+  }
+  .screen-a .top-bar .back { opacity:0.9; }
+  .screen-a .top-bar .trash-count {
+    background:rgba(255,59,48,0.85); border-radius:12px; padding:3px 10px; font-size:12px;
+  }
+  .screen-a .top-bar .progress { opacity:0.8; font-size:12px; }
+
+  .screen-a .bottom-info {
+    position:absolute; bottom:40px; left:0; right:0; z-index:5;
+    text-align:center;
+  }
+  .screen-a .bottom-info .date { font-size:13px; font-weight:500; opacity:0.9; }
+  .screen-a .bottom-info .size { font-size:11px; opacity:0.6; margin-top:2px; }
+  .screen-a .progress-bar {
+    position:absolute; bottom:28px; left:20px; right:20px; z-index:5;
+    height:3px; background:rgba(255,255,255,0.2); border-radius:2px;
+  }
+  .screen-a .progress-fill { width:25%; height:100%; background:#43e97b; border-radius:2px; }
+
+  .screen-a .gesture-hint {
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:5;
+    text-align:center;
+  }
+  .screen-a .gesture-hint .arrow { font-size:32px; opacity:0.7; animation:floatUp 2s infinite; }
+  .screen-a .gesture-hint .hint-text { font-size:11px; opacity:0.5; margin-top:4px; }
+  @keyframes floatUp { 0%,100%{transform:translateY(0);opacity:0.7} 50%{transform:translateY(-8px);opacity:0.3} }
+
+  /* ===== Style B: Bold Overlay ===== */
+  .screen-b .top-bar {
+    position:absolute; top:44px; left:0; right:0; z-index:5;
+    padding:8px 16px;
+    background:linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 100%);
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .screen-b .top-bar .back { font-size:20px; }
+  .screen-b .top-bar .center-info { text-align:center; }
+  .screen-b .top-bar .center-info .count { font-size:15px; font-weight:700; }
+  .screen-b .top-bar .center-info .sub { font-size:10px; opacity:0.6; }
+  .screen-b .top-bar .trash-badge {
+    background:rgba(255,59,48,0.9); width:36px; height:36px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700;
+    position:relative;
+  }
+  .screen-b .top-bar .trash-badge .num {
+    position:absolute; top:-4px; right:-4px; background:#ff3b30;
+    width:18px; height:18px; border-radius:50%; font-size:10px;
+    display:flex; align-items:center; justify-content:center; border:2px solid #000;
+  }
+
+  .screen-b .bottom-panel {
+    position:absolute; bottom:0; left:0; right:0; z-index:5;
+    background:linear-gradient(0deg, rgba(0,0,0,0.8) 0%, transparent 100%);
+    padding:40px 16px 16px;
+  }
+  .screen-b .bottom-panel .date { font-size:14px; font-weight:600; }
+  .screen-b .bottom-panel .meta { font-size:12px; opacity:0.6; margin-top:2px; }
+  .screen-b .action-indicators {
+    display:flex; justify-content:space-between; margin-top:12px; padding:0 20px;
+  }
+  .screen-b .action-ind {
+    width:44px; height:44px; border-radius:50%; display:flex;
+    align-items:center; justify-content:center; font-size:18px;
+  }
+  .screen-b .action-ind.delete { background:rgba(255,59,48,0.2); border:2px solid rgba(255,59,48,0.5); }
+  .screen-b .action-ind.keep { background:rgba(67,233,123,0.2); border:2px solid rgba(67,233,123,0.5); }
+  .screen-b .progress-dots {
+    display:flex; justify-content:center; gap:4px; margin-top:10px;
+  }
+  .screen-b .progress-dots .dot {
+    width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.2);
+  }
+  .screen-b .progress-dots .dot.active { background:#43e97b; width:18px; border-radius:3px; }
+  .screen-b .progress-dots .dot.done { background:rgba(67,233,123,0.4); }
+  .screen-b .progress-dots .dot.deleted { background:rgba(255,59,48,0.5); }
+
+  /* ===== Style C: Tinder-like ===== */
+  .screen-c {
+    background:#111;
+  }
+  .screen-c .phone-status-bar {
+    position:absolute; top:0; left:0; right:0;
+    padding:14px 20px 0; display:flex; justify-content:space-between;
+    font-size:12px; font-weight:600; z-index:10; color:#fff;
+  }
+  .screen-c .top-bar {
+    position:absolute; top:44px; left:0; right:0; z-index:5;
+    padding:8px 16px; display:flex; justify-content:space-between; align-items:center;
+    color:#fff;
+  }
+  .screen-c .top-bar .back { font-size:16px; opacity:0.8; }
+  .screen-c .top-bar .progress-text { font-size:13px; font-weight:600; opacity:0.8; }
+  .screen-c .top-bar .trash-pill {
+    background:rgba(255,59,48,0.2); border:1px solid rgba(255,59,48,0.4);
+    border-radius:14px; padding:4px 10px; font-size:12px; color:#ff6b6b;
+  }
+
+  .screen-c .card-container {
+    position:absolute; top:80px; left:12px; right:12px; bottom:70px;
+    border-radius:20px; overflow:hidden;
+    box-shadow:0 8px 30px rgba(0,0,0,0.5);
+    transform:rotate(2deg);
+  }
+  .screen-c .card-container .photo-bg { border-radius:20px; }
+  .screen-c .card-bottom {
+    position:absolute; bottom:0; left:0; right:0;
+    background:linear-gradient(0deg, rgba(0,0,0,0.85) 0%, transparent 100%);
+    padding:30px 16px 16px; border-radius:0 0 20px 20px;
+    z-index:2;
+  }
+  .screen-c .card-bottom .date { font-size:14px; font-weight:600; }
+  .screen-c .card-bottom .size { font-size:11px; opacity:0.5; margin-top:2px; }
+
+  .screen-c .keep-stamp {
+    position:absolute; top:60px; left:20px; z-index:6;
+    border:4px solid #43e97b; border-radius:12px; padding:4px 14px;
+    font-size:20px; font-weight:900; color:#43e97b;
+    transform:rotate(-15deg); opacity:0.85;
+  }
+
+  .screen-c .bg-card {
+    position:absolute; top:84px; left:16px; right:16px; bottom:74px;
+    border-radius:20px; background:linear-gradient(135deg, #3a3a5a, #2a2a4a);
+    transform:rotate(-1deg) scale(0.95); opacity:0.5;
+  }
+
+  .screen-c .bottom-actions {
+    position:absolute; bottom:16px; left:0; right:0; z-index:5;
+    display:flex; justify-content:center; gap:24px; align-items:center;
+  }
+  .screen-c .action-btn {
+    width:50px; height:50px; border-radius:50%; display:flex;
+    align-items:center; justify-content:center; font-size:22px;
+  }
+  .screen-c .action-btn.delete { background:rgba(255,59,48,0.15); border:2px solid rgba(255,59,48,0.4); }
+  .screen-c .action-btn.undo { background:rgba(255,255,255,0.08); border:2px solid rgba(255,255,255,0.15); width:40px; height:40px; font-size:16px; }
+  .screen-c .action-btn.keep { background:rgba(67,233,123,0.15); border:2px solid rgba(67,233,123,0.4); }
+
+  @media (max-width:700px) { .layouts { flex-direction:column; align-items:center; } }
+</style>
+<script>
+  function selectOption(el) {
+    document.querySelectorAll('.layout-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    const choice = el.dataset.choice;
+    fetch('/event', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({type:'click',choice,text:el.querySelector('.option-title')?.textContent||'',timestamp:Date.now()})
+    }).catch(()=>{});
+  }
+</script>
+</head>
+<body>
+
+<h1>📸 滑动浏览页方案</h1>
+<p class="subtitle">核心页面 — 选择你喜欢的信息展示和操作风格</p>
+
+<div class="layouts">
+
+  <!-- ===== A: Minimal Clean ===== -->
+  <div class="layout-option" data-choice="a" onclick="selectOption(this)">
+    <div class="phone-frame">
+      <div class="phone-screen screen-a">
+        <div class="phone-notch"></div>
+        <div class="photo-bg"></div>
+
+        <div class="top-bar">
+          <span class="back">‹ 返回</span>
+          <span class="trash-count">🗑 3</span>
+          <span class="progress">5/20</span>
+        </div>
+
+        <div class="gesture-hint">
+          <div class="arrow">↑</div>
+          <div class="hint-text">上滑保留</div>
+        </div>
+
+        <div class="bottom-info">
+          <div class="date">2024年3月15日</div>
+          <div class="size">3.2 MB</div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill"></div></div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+    <div class="option-label">
+      <div class="option-badge">A</div>
+      <div>
+        <div class="option-title">极简纯净</div>
+        <div class="option-desc">最少的 UI 元素，照片绝对主角，薄状态栏</div>
+      </div>
+    </div>
+    <div class="selected-text">✓ 已选择</div>
+  </div>
+
+  <!-- ===== B: Bold Overlay ===== -->
+  <div class="layout-option" data-choice="b" onclick="selectOption(this)">
+    <div class="phone-frame">
+      <div class="phone-screen screen-b">
+        <div class="phone-notch"></div>
+        <div class="photo-bg"></div>
+
+        <div class="top-bar">
+          <span class="back">‹</span>
+          <div class="center-info">
+            <div class="count">5 / 20</div>
+            <div class="sub">照片清理</div>
+          </div>
+          <div class="trash-badge">
+            🗑
+            <div class="num">3</div>
+          </div>
+        </div>
+
+        <div class="bottom-panel">
+          <div class="date">2024年3月15日 下午3:42</div>
+          <div class="meta">3.2 MB · iPhone 16 Pro</div>
+          <div class="action-indicators">
+            <div class="action-ind delete">✕</div>
+            <div class="action-ind keep">✓</div>
+          </div>
+          <div class="progress-dots">
+            <div class="dot done"></div>
+            <div class="dot done"></div>
+            <div class="dot deleted"></div>
+            <div class="dot done"></div>
+            <div class="dot active"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+          </div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+    <div class="option-label">
+      <div class="option-badge">B</div>
+      <div>
+        <div class="option-title">信息丰富</div>
+        <div class="option-desc">渐变蒙层，底部操作提示，圆点进度条</div>
+      </div>
+    </div>
+    <div class="selected-text">✓ 已选择</div>
+  </div>
+
+  <!-- ===== C: Tinder-like Card ===== -->
+  <div class="layout-option" data-choice="c" onclick="selectOption(this)">
+    <div class="phone-frame">
+      <div class="phone-screen screen-c">
+        <div class="phone-notch"></div>
+        <div class="phone-status-bar">
+          <span>9:41</span>
+          <span>📶 🔋</span>
+        </div>
+
+        <div class="top-bar">
+          <span class="back">‹ 返回</span>
+          <span class="progress-text">5/20</span>
+          <span class="trash-pill">🗑 3</span>
+        </div>
+
+        <div class="bg-card"></div>
+
+        <div class="card-container">
+          <div class="photo-bg"></div>
+          <div class="keep-stamp">保留 ✓</div>
+          <div class="card-bottom">
+            <div class="date">2024年3月15日</div>
+            <div class="size">3.2 MB</div>
+          </div>
+        </div>
+
+        <div class="bottom-actions">
+          <div class="action-btn delete">✕</div>
+          <div class="action-btn undo">↩</div>
+          <div class="action-btn keep">✓</div>
+        </div>
+
+        <div class="home-indicator" style="background:rgba(255,255,255,0.2);"></div>
+      </div>
+    </div>
+    <div class="option-label">
+      <div class="option-badge">C</div>
+      <div>
+        <div class="option-title">Tinder 卡片</div>
+        <div class="option-desc">浮动卡片+倾斜，底部按钮辅助，卡片堆叠感</div>
+      </div>
+    </div>
+    <div class="selected-text">✓ 已选择</div>
+  </div>
+
+</div>
+</body>
+</html>

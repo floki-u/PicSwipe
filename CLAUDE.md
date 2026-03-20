@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Status
 
 - ✅ 产品设计规格已完成：`docs/superpowers/specs/2026-03-19-picswipe-design.md`
-- 🔄 PRD 文档编写中
+- ✅ PRD 文档已完成：`docs/PRD.md`
 - ⬜ 实施计划待编写
 - ⬜ 代码开发未开始
 
@@ -55,21 +55,15 @@ PicSwipe/
 
 ## Build & Run
 
-> 尚未创建 Xcode 项目。项目创建后更新此处。
-
 ```bash
-# TODO: Add build commands after Xcode project is created
-# open PicSwipe.xcodeproj
-# xcodebuild -scheme PicSwipe -destination 'platform=iOS Simulator,name=iPhone 16'
-```
+# 打开 Xcode 项目（项目创建后可用）
+open PicSwipe.xcodeproj
 
-## Testing
+# 命令行构建
+xcodebuild -scheme PicSwipe -destination 'platform=iOS Simulator,name=iPhone 16'
 
-> 测试框架尚未配置。
-
-```bash
-# TODO: Add test commands
-# xcodebuild test -scheme PicSwipe -destination 'platform=iOS Simulator,name=iPhone 16'
+# 命令行运行模拟器
+xcrun simctl boot "iPhone 16" && xcodebuild -scheme PicSwipe -destination 'platform=iOS Simulator,name=iPhone 16' build
 ```
 
 ## Language Preference
@@ -77,3 +71,188 @@ PicSwipe/
 - 文档和注释使用**中文**
 - 代码（变量名、函数名）使用**英文**
 - Git commit messages 使用**英文**
+
+## Development Environment
+
+### 系统要求
+
+| 项目 | 最低版本 |
+|------|----------|
+| macOS | 14.0 (Sonoma)+ |
+| Xcode | 15.1+ |
+| iOS SDK | 17.0 |
+| Swift | 5.9+ |
+
+### 模拟器测试设备
+
+| 设备 | 屏幕尺寸 | 用途 |
+|------|----------|------|
+| iPhone SE (3rd) | 4.7" | 最小屏幕适配 |
+| iPhone 16 | 6.1" | 主要测试设备 |
+| iPhone 16 Pro Max | 6.9" | 最大屏幕适配 |
+
+## Git Workflow
+
+### 分支策略
+
+```
+main ← develop ← feature/xxx
+                ← bugfix/xxx
+                ← docs/xxx
+```
+
+- `main`：稳定发布版本，仅通过 PR 合入
+- `develop`：开发集成分支，功能完成后合入
+- `feature/xxx`：功能开发分支
+- `bugfix/xxx`：Bug 修复分支
+- `docs/xxx`：文档更新分支
+
+### Commit 规范
+
+使用 [Conventional Commits](https://www.conventionalcommits.org/) 格式：
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer]
+```
+
+**Type 列表：**
+
+| Type | 用途 |
+|------|------|
+| `feat` | 新功能 |
+| `fix` | Bug 修复 |
+| `docs` | 文档更新 |
+| `refactor` | 代码重构（不改变行为） |
+| `test` | 测试相关 |
+| `chore` | 构建/工具/配置 |
+| `style` | 代码格式（不影响逻辑） |
+| `perf` | 性能优化 |
+
+**Scope 列表：**
+
+| Scope | 对应模块 |
+|-------|----------|
+| `home` | 首页仪表盘 |
+| `swipe` | 滑动浏览页 |
+| `confirm` | 确认删除页 |
+| `filter` | 筛选页 |
+| `settings` | 设置页 |
+| `photo-service` | PhotoLibraryService |
+| `storage-service` | StorageService |
+| `stats-service` | StatisticsService |
+| `models` | 数据模型 |
+| `app` | App 入口/生命周期 |
+
+**示例：**
+```
+feat(swipe): add drag gesture with directional tilt effect
+fix(photo-service): handle nil fileSize for iCloud-only assets
+docs(prd): add competitive analysis section
+```
+
+## Code Style Guide
+
+### 命名约定
+
+| 类型 | 规则 | 示例 |
+|------|------|------|
+| 类型（struct/class/enum） | PascalCase | `AssetItem`, `CleanSession` |
+| 协议 | PascalCase + 描述性后缀 | `PhotoLibraryProviding` |
+| 变量/属性 | camelCase | `currentIndex`, `markedForDeletion` |
+| 函数/方法 | camelCase + 动词开头 | `fetchAssets()`, `markForDeletion()` |
+| 常量 | camelCase | `maxBatchSize` |
+| 枚举 case | camelCase | `case photo`, `case video` |
+
+### 布尔变量命名
+
+- 使用 `is`/`has`/`should`/`can` 前缀
+- 示例：`isLoading`, `hasSeenTutorial`, `shouldShowBanner`, `canDelete`
+
+### 文档注释
+
+```swift
+/// 从相册中随机抽取一组照片
+/// - Parameters:
+///   - mode: 清理模式（照片/视频）
+///   - count: 抽取数量
+///   - filter: 可选筛选条件
+/// - Returns: 构建好的清理会话
+/// - Throws: `PhotoError.noAssets` 如果没有符合条件的照片
+func fetchRandomAssets(mode: CleanMode, count: Int, filter: FilterCriteria?) async throws -> CleanSession
+```
+
+### SwiftLint 配置要点
+
+```yaml
+# .swiftlint.yml
+opt_in_rules:
+  - empty_count
+  - closure_spacing
+  - force_unwrapping
+  - implicitly_unwrapped_optional
+
+disabled_rules:
+  - trailing_whitespace   # Xcode 自动处理
+
+line_length:
+  warning: 120
+  error: 150
+
+type_body_length:
+  warning: 300
+  error: 500
+
+file_length:
+  warning: 500
+  error: 800
+```
+
+### 其他规范
+
+- 每个文件只包含一个主要类型定义
+- 使用 `// MARK: -` 组织代码区块
+- 优先使用 `guard` 提前返回，减少嵌套
+- 避免 Force Unwrap（`!`），使用 `guard let` 或 `if let`
+- View 文件中分离 UI 子组件为 `private` 计算属性或私有 View
+
+## Testing
+
+### 测试框架
+
+- 单元测试：XCTest
+- UI 测试：XCUITest
+- 测试目标：`PicSwipeTests`（单元）、`PicSwipeUITests`（UI）
+
+### 覆盖率目标
+
+| 层级 | 目标覆盖率 |
+|------|-----------|
+| Services | > 80% |
+| ViewModels | > 70% |
+| Models | > 90% |
+| Views | UI 测试覆盖核心流程 |
+
+### 测试命名规范
+
+```swift
+// 格式：test_<被测方法>_<场景>_<预期结果>
+func test_fetchRandomAssets_withEmptyLibrary_throwsNoAssetsError()
+func test_markForDeletion_togglesFlag_andUpdatesCount()
+```
+
+### 运行命令
+
+```bash
+# 运行全部单元测试
+xcodebuild test -scheme PicSwipe -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:PicSwipeTests
+
+# 运行全部 UI 测试
+xcodebuild test -scheme PicSwipe -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:PicSwipeUITests
+
+# 运行特定测试文件
+xcodebuild test -scheme PicSwipe -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:PicSwipeTests/PhotoLibraryServiceTests
+```

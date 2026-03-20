@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PicSwipe 设计总览</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    background: #0a0a0a; color: #fff; padding: 20px 20px 60px; min-height: 100vh;
+  }
+  h1 { text-align:center; font-size:32px; margin:20px 0 4px; font-weight:800; }
+  .main-sub { text-align:center; color:#888; font-size:15px; margin-bottom:8px; }
+  .design-summary {
+    max-width:600px; margin:0 auto 30px; padding:16px 20px;
+    background:rgba(67,233,123,0.06); border:1px solid rgba(67,233,123,0.15);
+    border-radius:16px; font-size:13px; color:#aaa; line-height:1.6;
+  }
+  .design-summary strong { color:#43e97b; }
+
+  .section-title {
+    text-align:center; font-size:22px; font-weight:700; margin:40px 0 6px;
+  }
+  .section-sub { text-align:center; font-size:13px; color:#666; margin-bottom:20px; }
+  .section-badge {
+    display:inline-block; padding:3px 10px; border-radius:10px; font-size:11px; font-weight:600;
+    background:rgba(67,233,123,0.15); color:#43e97b; margin-bottom:6px;
+  }
+
+  .phone-row {
+    display:flex; gap:24px; justify-content:center; flex-wrap:wrap;
+    max-width:1400px; margin:0 auto;
+  }
+
+  .phone-wrapper { text-align:center; }
+  .phone-label { font-size:13px; color:#888; margin-top:8px; }
+
+  .phone-frame {
+    width:260px; height:530px; background:#000; border-radius:34px;
+    padding:11px; position:relative; display:inline-block;
+  }
+  .phone-screen { width:100%; height:100%; border-radius:24px; overflow:hidden; position:relative; }
+  .phone-notch { width:90px; height:26px; background:#000; border-radius:0 0 14px 14px; position:absolute; top:0; left:50%; transform:translateX(-50%); z-index:10; }
+  .home-indicator { width:110px; height:4px; background:rgba(255,255,255,0.2); border-radius:2px; position:absolute; bottom:7px; left:50%; transform:translateX(-50%); }
+
+  /* ===== HOME: Card Flow Dark ===== */
+  .scr-home { background:#111; color:#fff; }
+  .h-page { height:100%; display:flex; flex-direction:column; }
+  .h-status { padding:14px 18px 0; display:flex; justify-content:space-between; font-size:11px; font-weight:600; color:#fff; position:relative; z-index:5; }
+  .h-hero {
+    flex:0 0 auto; margin:6px 14px 0; padding:18px;
+    background:linear-gradient(160deg, rgba(67,233,123,0.15), rgba(56,249,215,0.08));
+    border-radius:22px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    position:relative; overflow:hidden;
+  }
+  .h-hero::before { content:''; position:absolute; top:-30px; right:-30px; width:100px; height:100px; border-radius:50%; background:radial-gradient(circle,rgba(67,233,123,0.2),transparent); }
+  .h-hero .emoji { font-size:36px; margin-bottom:4px; }
+  .h-hero .title { font-size:20px; font-weight:800; }
+  .h-hero .sub { font-size:11px; color:rgba(255,255,255,0.5); }
+  .h-pill {
+    margin:8px auto 0; background:rgba(255,255,255,0.1); border-radius:16px;
+    padding:4px 14px; font-size:10px; color:#aaa; display:inline-flex; align-items:center; gap:6px;
+  }
+  .h-mini-bar { width:50px; height:3px; background:rgba(255,255,255,0.15); border-radius:2px; overflow:hidden; }
+  .h-mini-fill { width:72%; height:100%; background:linear-gradient(90deg,#43e97b,#f4c542); border-radius:2px; }
+  .h-cards { padding:0 14px; margin-top:8px; }
+  .h-action {
+    background:linear-gradient(135deg,#43e97b,#38f9d7); border-radius:18px;
+    padding:13px; display:flex; align-items:center; gap:10px; margin-bottom:8px;
+  }
+  .h-action .ico { font-size:24px; }
+  .h-action .info h3 { font-size:14px; font-weight:700; color:#000; }
+  .h-action .info p { font-size:10px; color:rgba(0,0,0,0.5); }
+  .h-action .arrow { font-size:16px; color:rgba(0,0,0,0.3); margin-left:auto; }
+  .h-sub-cards { display:flex; gap:8px; }
+  .h-sub-card { flex:1; background:rgba(255,255,255,0.08); border-radius:14px; padding:10px; text-align:center; }
+  .h-sub-card .ico { font-size:16px; }
+  .h-sub-card .val { font-size:13px; font-weight:700; margin-top:2px; }
+  .h-sub-card .lbl { font-size:9px; color:#888; }
+
+  /* ===== SWIPE: Minimal Clean ===== */
+  .scr-swipe { background:#000; }
+  .sw-photo {
+    position:absolute; inset:0;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='530'%3E%3Cdefs%3E%3ClinearGradient id='sky' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%234a8ab5'/%3E%3Cstop offset='0.4' stop-color='%2387ceeb'/%3E%3Cstop offset='1' stop-color='%2345a049'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill='url(%23sky)' width='260' height='530'/%3E%3Ccircle cx='200' cy='80' r='30' fill='%23FDB813' opacity='0.9'/%3E%3Cellipse cx='80' cy='60' rx='40' ry='15' fill='white' opacity='0.5'/%3E%3Cellipse cx='130' cy='350' rx='180' ry='80' fill='%233d8b40'/%3E%3Cellipse cx='100' cy='380' rx='140' ry='100' fill='%2345a049'/%3E%3Cellipse cx='200' cy='400' rx='120' ry='80' fill='%232d7a30'/%3E%3Ccircle cx='110' cy='320' r='8' fill='%23e74c3c'/%3E%3Ccircle cx='150' cy='310' r='6' fill='%23f39c12'/%3E%3C/svg%3E") center/cover;
+  }
+  .sw-top {
+    position:absolute; top:42px; left:0; right:0; z-index:5;
+    padding:0 14px; display:flex; justify-content:space-between; align-items:center; font-size:12px; font-weight:600; color:#fff;
+  }
+  .sw-trash { background:rgba(255,59,48,0.85); border-radius:10px; padding:2px 8px; font-size:11px; }
+  .sw-bottom-info { position:absolute; bottom:36px; left:0; right:0; z-index:5; text-align:center; color:#fff; }
+  .sw-bottom-info .date { font-size:12px; font-weight:500; opacity:0.9; }
+  .sw-bottom-info .size { font-size:10px; opacity:0.6; }
+  .sw-progress { position:absolute; bottom:26px; left:18px; right:18px; height:2px; background:rgba(255,255,255,0.2); border-radius:1px; z-index:5; }
+  .sw-progress-fill { width:25%; height:100%; background:#43e97b; border-radius:1px; }
+
+  /* ===== CONFIRM: Swipeable Review ===== */
+  .scr-confirm { background:#111; color:#fff; }
+  .cf-header { padding:46px 14px 0; text-align:center; position:relative; }
+  .cf-header .back { position:absolute; left:14px; top:48px; font-size:14px; opacity:0.7; }
+  .cf-header h3 { font-size:16px; font-weight:700; }
+  .cf-header .sub { font-size:11px; color:#888; margin-top:2px; }
+  .cf-preview {
+    margin:10px 14px; height:200px; border-radius:18px; overflow:hidden; position:relative;
+    background:linear-gradient(135deg,#e74c3c,#f39c12);
+    box-shadow:0 6px 20px rgba(0,0,0,0.4);
+  }
+  .cf-preview .overlay {
+    position:absolute; inset:0; background:linear-gradient(0deg,rgba(0,0,0,0.7) 0%,transparent 50%);
+    display:flex; flex-direction:column; justify-content:flex-end; padding:14px;
+  }
+  .cf-preview .overlay .date { font-size:13px; font-weight:600; }
+  .cf-preview .overlay .sz { font-size:10px; opacity:0.6; }
+  .cf-preview .counter { position:absolute; top:10px; left:10px; background:rgba(255,69,58,0.8); border-radius:8px; padding:2px 8px; font-size:11px; font-weight:600; }
+  .cf-preview .x-btn { position:absolute; top:10px; right:10px; width:28px; height:28px; border-radius:50%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; font-size:12px; }
+  .cf-dots { display:flex; justify-content:center; gap:3px; margin-top:6px; }
+  .cf-dots .dot { width:5px; height:5px; border-radius:50%; background:rgba(255,255,255,0.2); }
+  .cf-dots .dot.active { background:#ff453a; width:16px; border-radius:3px; }
+  .cf-minis { display:flex; gap:3px; padding:0 14px; margin-top:8px; overflow:hidden; }
+  .cf-mini { width:42px; height:42px; border-radius:7px; flex-shrink:0; }
+  .cf-mini.active { border:2px solid #ff453a; }
+  .cf-mini.t1 { background:linear-gradient(135deg,#4a8ab5,#87ceeb); }
+  .cf-mini.t2 { background:linear-gradient(135deg,#e74c3c,#f39c12); }
+  .cf-mini.t3 { background:linear-gradient(135deg,#2ecc71,#1abc9c); }
+  .cf-mini.t4 { background:linear-gradient(135deg,#9b59b6,#3498db); }
+  .cf-mini.t5 { background:linear-gradient(135deg,#e67e22,#e74c3c); }
+  .cf-space { text-align:center; margin-top:8px; font-size:11px; color:#888; }
+  .cf-space strong { color:#ff453a; }
+  .cf-bottom { position:absolute; bottom:14px; left:14px; right:14px; }
+  .cf-del-btn { width:100%; padding:12px; border-radius:14px; background:#ff453a; text-align:center; font-size:14px; font-weight:700; color:#fff; }
+  .cf-sec { display:flex; justify-content:center; gap:16px; margin-top:6px; font-size:11px; color:#888; }
+
+  /* ===== FILTER: Visual Slider ===== */
+  .scr-filter { background:#111; color:#fff; }
+  .fl-header { padding:46px 14px 0; display:flex; justify-content:space-between; align-items:center; }
+  .fl-header .back { font-size:14px; opacity:0.7; }
+  .fl-header h3 { font-size:16px; font-weight:700; }
+  .fl-header .reset { font-size:11px; color:#43e97b; }
+  .fl-time { padding:10px 14px 0; }
+  .fl-label { font-size:11px; color:#888; font-weight:600; margin-bottom:6px; }
+  .fl-time-box { background:rgba(255,255,255,0.06); border-radius:12px; padding:12px; }
+  .fl-time-range { display:flex; justify-content:space-between; font-size:12px; font-weight:600; color:#43e97b; margin-bottom:6px; }
+  .fl-slider { height:3px; background:rgba(255,255,255,0.1); border-radius:2px; position:relative; margin:6px 0; }
+  .fl-slider-fill { position:absolute; left:0; right:30%; height:100%; background:linear-gradient(90deg,#43e97b,#38f9d7); border-radius:2px; }
+  .fl-slider-thumb { position:absolute; right:28%; top:-5px; width:13px; height:13px; border-radius:50%; background:#43e97b; border:2px solid #111; }
+  .fl-presets { display:flex; gap:5px; margin-top:6px; }
+  .fl-preset { padding:3px 8px; border-radius:10px; font-size:9px; background:rgba(255,255,255,0.06); color:#888; }
+  .fl-preset.active { background:rgba(67,233,123,0.15); color:#43e97b; }
+  .fl-albums { padding:10px 14px 0; }
+  .fl-album-scroll { display:flex; gap:6px; overflow:hidden; }
+  .fl-album-card { width:68px; flex-shrink:0; text-align:center; }
+  .fl-album-thumb { width:68px; height:68px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:22px; margin-bottom:3px; }
+  .fl-album-thumb.a1 { background:linear-gradient(135deg,#4a8ab5,#87ceeb); }
+  .fl-album-thumb.a2 { background:linear-gradient(135deg,#e74c3c,#f39c12); }
+  .fl-album-thumb.a3 { background:linear-gradient(135deg,#9b59b6,#3498db); }
+  .fl-album-thumb.a4 { background:linear-gradient(135deg,#2ecc71,#1abc9c); }
+  .fl-album-thumb.sel { border:2px solid #43e97b; }
+  .fl-album-card .nm { font-size:9px; color:#aaa; }
+  .fl-album-card .ct { font-size:8px; color:#555; }
+  .fl-count { margin:10px 14px 0; padding:10px; text-align:center; background:rgba(67,233,123,0.08); border-radius:10px; border:1px solid rgba(67,233,123,0.15); }
+  .fl-count .num { font-size:18px; font-weight:800; color:#43e97b; }
+  .fl-count .lbl { font-size:9px; color:#888; }
+  .fl-bottom { position:absolute; bottom:14px; left:14px; right:14px; }
+  .fl-go { width:100%; padding:12px; border-radius:14px; background:linear-gradient(135deg,#43e97b,#38f9d7); text-align:center; font-size:14px; font-weight:700; color:#000; }
+
+  /* ===== SETTINGS: Card Visual ===== */
+  .scr-settings { background:#111; color:#fff; }
+  .st-header { padding:46px 14px 0; display:flex; justify-content:space-between; align-items:center; }
+  .st-header .back { font-size:14px; opacity:0.7; }
+  .st-header h3 { font-size:16px; font-weight:700; }
+  .st-profile { margin:10px 14px; padding:12px; background:linear-gradient(135deg,rgba(67,233,123,0.1),rgba(56,249,215,0.05)); border:1px solid rgba(67,233,123,0.15); border-radius:16px; display:flex; align-items:center; gap:10px; }
+  .st-icon { width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,#43e97b,#38f9d7); display:flex; align-items:center; justify-content:center; font-size:20px; }
+  .st-info h4 { font-size:13px; font-weight:700; }
+  .st-info .ver { font-size:10px; color:#888; }
+  .st-card { margin:0 14px 8px; background:rgba(255,255,255,0.06); border-radius:14px; padding:12px; }
+  .st-card-title { font-size:10px; color:#888; font-weight:600; margin-bottom:8px; }
+  .st-batch { display:flex; gap:6px; }
+  .st-batch-opt { flex:1; padding:8px 0; border-radius:10px; text-align:center; background:rgba(255,255,255,0.06); font-size:14px; font-weight:700; color:#aaa; }
+  .st-batch-opt.active { background:linear-gradient(135deg,#43e97b,#38f9d7); color:#000; }
+  .st-batch-hint { font-size:8px; color:#666; text-align:center; margin-top:3px; }
+  .st-history-bars { display:flex; gap:6px; margin-top:6px; }
+  .st-hbar { flex:1; display:flex; flex-direction:column; align-items:center; gap:1px; }
+  .st-hbar .bar { width:100%; border-radius:3px 3px 0 0; background:linear-gradient(180deg,#43e97b,#38f9d7); opacity:0.6; }
+  .st-hbar .day { font-size:7px; color:#666; }
+  .st-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:12px; }
+  .st-row:last-child { border-bottom:none; }
+  .st-row .left { display:flex; align-items:center; gap:6px; }
+  .st-row .ico { font-size:14px; }
+  .st-row .right { font-size:11px; color:#43e97b; }
+
+  /* Flow arrows */
+  .flow-section { text-align:center; margin:50px 0 20px; }
+  .flow-arrow { font-size:32px; color:#43e97b; margin:0 8px; opacity:0.5; }
+  .flow-label { font-size:12px; color:#555; margin-top:4px; }
+
+  @media (max-width:700px) { .phone-row { flex-direction:column; align-items:center; } }
+</style>
+</head>
+<body>
+
+<h1>🌿 PicSwipe 设计总览</h1>
+<p class="main-sub">最终确认 — 所有页面设计方案</p>
+
+<div class="design-summary">
+  <strong>🎨 配色：</strong>清新薄荷（翠绿→青绿渐变）&nbsp;&nbsp;
+  <strong>🌙 基调：</strong>深色沉浸式&nbsp;&nbsp;
+  <strong>✨ 风格：</strong>活力年轻 · 卡片化 · 极简操作
+</div>
+
+<!-- ===== User Flow ===== -->
+<div class="flow-section">
+  <span class="section-badge">用户流程</span>
+  <div style="font-size:14px; color:#aaa; margin-top:8px;">
+    首页 <span class="flow-arrow">→</span> 滑动浏览 <span class="flow-arrow">→</span> 确认删除 <span class="flow-arrow">→</span> 回到首页
+  </div>
+  <div class="flow-label">首页也可进入 筛选页 → 滑动浏览 | 设置页独立入口</div>
+</div>
+
+<!-- ===== Main Flow ===== -->
+<div class="section-title">📱 核心流程页面</div>
+<div class="section-sub">首页 → 滑动浏览 → 确认删除</div>
+
+<div class="phone-row">
+  <!-- HOME -->
+  <div class="phone-wrapper">
+    <div class="phone-frame">
+      <div class="phone-screen scr-home">
+        <div class="phone-notch"></div>
+        <div class="h-page">
+          <div class="h-status"><span>9:41</span><span>📶 🔋</span></div>
+          <div class="h-hero">
+            <div class="emoji">🌿</div>
+            <div class="title">PicSwipe</div>
+            <div class="sub">滑一滑，轻松释放空间</div>
+          </div>
+          <div style="text-align:center;"><div class="h-pill"><span>92.4 / 128 GB</span><div class="h-mini-bar"><div class="h-mini-fill"></div></div></div></div>
+          <div class="h-cards">
+            <div class="h-action">
+              <div class="ico">✨</div>
+              <div class="info"><h3>开始清理</h3><p>随机抽取 20 张照片</p></div>
+              <div class="arrow">›</div>
+            </div>
+            <div class="h-sub-cards">
+              <div class="h-sub-card"><div class="ico">📷</div><div class="val">3,842</div><div class="lbl">照片</div></div>
+              <div class="h-sub-card"><div class="ico">🎬</div><div class="val">286</div><div class="lbl">视频</div></div>
+              <div class="h-sub-card"><div class="ico">🧹</div><div class="val">2.3GB</div><div class="lbl">已释放</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+    <div class="phone-label">🏠 首页 · 卡片流</div>
+  </div>
+
+  <!-- SWIPE -->
+  <div class="phone-wrapper">
+    <div class="phone-frame">
+      <div class="phone-screen scr-swipe">
+        <div class="phone-notch"></div>
+        <div class="sw-photo"></div>
+        <div class="sw-top">
+          <span>‹ 返回</span>
+          <span class="sw-trash">🗑 3</span>
+          <span>5/20</span>
+        </div>
+        <div class="sw-bottom-info">
+          <div class="date">2024年3月15日</div>
+          <div class="size">3.2 MB</div>
+        </div>
+        <div class="sw-progress"><div class="sw-progress-fill"></div></div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+    <div class="phone-label">📸 滑动浏览 · 极简纯净</div>
+  </div>
+
+  <!-- CONFIRM -->
+  <div class="phone-wrapper">
+    <div class="phone-frame">
+      <div class="phone-screen scr-confirm">
+        <div class="phone-notch"></div>
+        <div class="cf-header">
+          <span class="back">‹</span>
+          <h3>确认删除</h3>
+          <div class="sub">左右滑动查看每张照片</div>
+        </div>
+        <div class="cf-preview">
+          <div class="counter">2/7</div>
+          <div class="x-btn">✕</div>
+          <div class="overlay">
+            <div class="date">2024年3月10日</div>
+            <div class="sz">4.8 MB · 截屏</div>
+          </div>
+        </div>
+        <div class="cf-dots">
+          <div class="dot"></div><div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        </div>
+        <div class="cf-minis">
+          <div class="cf-mini t1"></div>
+          <div class="cf-mini t2 active"></div>
+          <div class="cf-mini t3"></div>
+          <div class="cf-mini t4"></div>
+          <div class="cf-mini t5"></div>
+        </div>
+        <div class="cf-space">预计释放 <strong>18.6 MB</strong></div>
+        <div class="cf-bottom">
+          <div class="cf-del-btn">确认删除 (7)</div>
+          <div class="cf-sec"><span>再来一组</span><span>全部撤回</span></div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+    <div class="phone-label">🗑 确认删除 · 逐张预览</div>
+  </div>
+</div>
+
+<!-- ===== Secondary Pages ===== -->
+<div class="section-title">📋 辅助页面</div>
+<div class="section-sub">筛选页 · 设置页</div>
+
+<div class="phone-row">
+  <!-- FILTER -->
+  <div class="phone-wrapper">
+    <div class="phone-frame">
+      <div class="phone-screen scr-filter">
+        <div class="phone-notch"></div>
+        <div class="fl-header">
+          <span class="back">‹</span>
+          <h3>筛选清理</h3>
+          <span class="reset">重置</span>
+        </div>
+        <div class="fl-time">
+          <div class="fl-label">📅 时间范围</div>
+          <div class="fl-time-box">
+            <div class="fl-time-range"><span>2023年3月</span><span style="color:#555;">→</span><span>2025年3月</span></div>
+            <div class="fl-slider"><div class="fl-slider-fill"></div><div class="fl-slider-thumb"></div></div>
+            <div class="fl-presets">
+              <div class="fl-preset active">1年前</div><div class="fl-preset">2年前</div><div class="fl-preset">3年前</div><div class="fl-preset">全部</div>
+            </div>
+          </div>
+        </div>
+        <div class="fl-albums">
+          <div class="fl-label">📁 相册</div>
+          <div class="fl-album-scroll">
+            <div class="fl-album-card"><div class="fl-album-thumb a1 sel">📷</div><div class="nm">所有照片</div><div class="ct">3,842</div></div>
+            <div class="fl-album-card"><div class="fl-album-thumb a2">📱</div><div class="nm">截屏</div><div class="ct">892</div></div>
+            <div class="fl-album-card"><div class="fl-album-thumb a3">🤳</div><div class="nm">自拍</div><div class="ct">234</div></div>
+            <div class="fl-album-card"><div class="fl-album-thumb a4">🌅</div><div class="nm">旅行</div><div class="ct">567</div></div>
+          </div>
+        </div>
+        <div class="fl-count"><div class="num">1,286</div><div class="lbl">张照片符合条件</div></div>
+        <div class="fl-bottom"><div class="fl-go">开始筛选清理</div></div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+    <div class="phone-label">🔍 筛选页 · 可视化滑块</div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="phone-wrapper">
+    <div class="phone-frame">
+      <div class="phone-screen scr-settings">
+        <div class="phone-notch"></div>
+        <div class="st-header">
+          <span class="back">‹</span>
+          <h3>设置</h3>
+        </div>
+        <div class="st-profile">
+          <div class="st-icon">🌿</div>
+          <div class="st-info"><h4>PicSwipe</h4><div class="ver">版本 1.0.0 · 完全访问</div></div>
+        </div>
+        <div class="st-card">
+          <div class="st-card-title">每组数量</div>
+          <div class="st-batch">
+            <div class="st-batch-opt">10</div><div class="st-batch-opt active">20</div><div class="st-batch-opt">30</div><div class="st-batch-opt">50</div>
+          </div>
+          <div class="st-batch-hint">每次清理随机抽取的照片数量</div>
+        </div>
+        <div class="st-card">
+          <div class="st-card-title">清理历史</div>
+          <div class="st-history-bars">
+            <div class="st-hbar"><div class="bar" style="height:16px;"></div><div class="day">一</div></div>
+            <div class="st-hbar"><div class="bar" style="height:28px;"></div><div class="day">二</div></div>
+            <div class="st-hbar"><div class="bar" style="height:12px;"></div><div class="day">三</div></div>
+            <div class="st-hbar"><div class="bar" style="height:36px;"></div><div class="day">四</div></div>
+            <div class="st-hbar"><div class="bar" style="height:20px;"></div><div class="day">五</div></div>
+            <div class="st-hbar"><div class="bar" style="height:40px;"></div><div class="day">六</div></div>
+            <div class="st-hbar"><div class="bar" style="height:24px;"></div><div class="day">日</div></div>
+          </div>
+          <div class="st-row"><div class="left"><span class="ico">📊</span> 查看完整记录</div><div class="right">›</div></div>
+        </div>
+        <div class="st-card">
+          <div class="st-card-title">其他</div>
+          <div class="st-row"><div class="left"><span class="ico">👆</span> 重播手势教程</div><div class="right">›</div></div>
+          <div class="st-row"><div class="left"><span class="ico">🔒</span> 相册权限</div><div class="right">›</div></div>
+          <div class="st-row"><div class="left"><span class="ico">🌿</span> 隐私政策</div><div class="right">›</div></div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+    <div class="phone-label">⚙️ 设置页 · 卡片可视化</div>
+  </div>
+</div>
+
+</body>
+</html>
