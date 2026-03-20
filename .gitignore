@@ -1,0 +1,17 @@
+# Xcode
+*.xcuserdata/
+DerivedData/
+*.xcworkspace/xcuserdata/
+xcuserdata/
+
+# macOS
+.DS_Store
+
+# Superpowers brainstorm sessions
+.superpowers/
+
+# Claude internal
+.claude/
+
+# Build
+build/

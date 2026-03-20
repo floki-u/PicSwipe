@@ -10,8 +10,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - ✅ 产品设计规格已完成：`docs/superpowers/specs/2026-03-19-picswipe-design.md`
 - ✅ PRD 文档已完成：`docs/PRD.md`
-- ⬜ 实施计划待编写
-- ⬜ 代码开发未开始
+- ✅ UI 设计规格已完成：`docs/superpowers/specs/2026-03-20-picswipe-ui-design.md`
+- ✅ 实施计划已完成：`docs/superpowers/plans/2026-03-20-picswipe-mvp.md`
+- ✅ MVP V1.0 代码开发已完成
+- ⬜ V1.1 筛选与视频功能
+- ⬜ V1.2 体验优化
 
 ## Tech Stack
 
