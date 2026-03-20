@@ -1,10 +1,268 @@
+// PicSwipe/Views/Settings/SettingsView.swift
 import SwiftUI
+import SwiftData
+import Photos
 
+/// 设置页 — 卡片式布局
 struct SettingsView: View {
+    @Environment(PhotoLibraryService.self) private var photoService
+    @Environment(StatisticsService.self) private var statsService
+    @Environment(\.modelContext) private var modelContext
+
+    @State private var userSettings: UserSettings?
+    @State private var totalDeleted: Int = 0
+    @State private var totalFreed: Int64 = 0
+
+    private let batchOptions = [10, 20, 30, 50]
+
     var body: some View {
         ZStack {
             Color.appBackground.ignoresSafeArea()
-            Text("设置").foregroundStyle(.white)
+
+            ScrollView {
+                VStack(spacing: Spacing.md) {
+                    brandCard
+                    batchSizeCard
+                    historyCard
+                    otherCard
+                }
+                .padding(.horizontal, Spacing.pagePadding)
+                .padding(.top, Spacing.md)
+                .padding(.bottom, Spacing.xl)
+            }
         }
+        .navigationTitle("设置")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .onAppear {
+            loadData()
+        }
+    }
+
+    // MARK: - 品牌卡片
+
+    private var brandCard: some View {
+        CardContainer {
+            HStack(spacing: Spacing.md) {
+                // 应用图标占位
+                ZStack {
+                    LinearGradient.brandGradient
+                    Text("🌿")
+                        .font(.title)
+                }
+                .frame(width: 56, height: 56)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("PicSwipe")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.white)
+
+                    Text("版本 1.0.0")
+                        .font(.caption)
+                        .foregroundStyle(Color.textSecondary)
+
+                    permissionBadge
+                }
+
+                Spacer()
+            }
+        }
+    }
+
+    private var permissionBadge: some View {
+        let status = photoService.authorizationStatus
+        let (text, color): (String, Color) = {
+            switch status {
+            case .authorized:
+                return ("相册：已授权", Color.brandPrimary)
+            case .limited:
+                return ("相册：部分授权", Color.warningYellow)
+            case .denied, .restricted:
+                return ("相册：未授权", Color.destructiveRed)
+            default:
+                return ("相册：未确定", Color.textSecondary)
+            }
+        }()
+
+        return HStack(spacing: 4) {
+            Circle()
+                .fill(color)
+                .frame(width: 6, height: 6)
+            Text(text)
+                .font(.caption2)
+                .foregroundStyle(color)
+        }
+    }
+
+    // MARK: - 每组数量卡片
+
+    private var batchSizeCard: some View {
+        CardContainer {
+            VStack(alignment: .leading, spacing: Spacing.md) {
+                Text("每组数量")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.white)
+
+                HStack(spacing: Spacing.sm) {
+                    ForEach(batchOptions, id: \.self) { size in
+                        batchSizeButton(size)
+                    }
+                }
+
+                Text("每次清理会随机抽取这么多张照片")
+                    .font(.caption)
+                    .foregroundStyle(Color.textSecondary)
+            }
+        }
+    }
+
+    private func batchSizeButton(_ size: Int) -> some View {
+        let isSelected = userSettings?.batchSize == size
+
+        return Button {
+            selectBatchSize(size)
+        } label: {
+            Text("\(size)")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundStyle(isSelected ? .black : Color.textSecondary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(
+                    Group {
+                        if isSelected {
+                            AnyView(LinearGradient.brandGradient)
+                        } else {
+                            AnyView(Color.white.opacity(0.08))
+                        }
+                    }
+                )
+                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.chip))
+        }
+    }
+
+    // MARK: - 清理历史卡片
+
+    private var historyCard: some View {
+        CardContainer {
+            VStack(alignment: .leading, spacing: Spacing.md) {
+                HStack {
+                    Text("清理历史")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white)
+                    Spacer()
+                }
+
+                HStack(spacing: 0) {
+                    // 删除张数
+                    VStack(spacing: 4) {
+                        Text("\(totalDeleted)")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(Color.brandPrimary)
+                        Text("已删除张数")
+                            .font(.caption2)
+                            .foregroundStyle(Color.textSecondary)
+                    }
+                    .frame(maxWidth: .infinity)
+
+                    Rectangle()
+                        .fill(Color.white.opacity(0.1))
+                        .frame(width: 1, height: 36)
+
+                    // 释放空间
+                    VStack(spacing: 4) {
+                        Text(formatFileSize(totalFreed))
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(Color.brandPrimary)
+                        Text("已释放空间")
+                            .font(.caption2)
+                            .foregroundStyle(Color.textSecondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+        }
+    }
+
+    // MARK: - 其他设置卡片
+
+    private var otherCard: some View {
+        CardContainer {
+            VStack(spacing: 0) {
+                settingsRow(emoji: "👆", title: "重播手势教程") {
+                    userSettings?.hasSeenTutorial = false
+                    try? modelContext.save()
+                }
+
+                divider
+
+                settingsRow(emoji: "🔒", title: "相册权限") {
+                    openSystemSettings()
+                }
+
+                divider
+
+                settingsRow(emoji: "🌿", title: "隐私政策") {
+                    // V1.1: 打开隐私政策页面
+                }
+            }
+        }
+    }
+
+    private var divider: some View {
+        Rectangle()
+            .fill(Color.white.opacity(0.08))
+            .frame(height: 1)
+            .padding(.horizontal, -Spacing.md)
+    }
+
+    private func settingsRow(emoji: String, title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: Spacing.md) {
+                Text(emoji)
+                    .font(.body)
+                    .frame(width: 28)
+
+                Text(title)
+                    .font(.body)
+                    .foregroundStyle(.white)
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Color.textMuted)
+            }
+            .padding(.vertical, Spacing.sm)
+            .contentShape(Rectangle())
+        }
+    }
+
+    // MARK: - 数据加载
+
+    private func loadData() {
+        userSettings = statsService.getSettings(in: modelContext)
+        totalDeleted = statsService.totalDeletedCount(in: modelContext)
+        totalFreed = statsService.totalFreedSpace(in: modelContext)
+    }
+
+    // MARK: - 操作
+
+    private func selectBatchSize(_ size: Int) {
+        guard let settings = userSettings else { return }
+        settings.batchSize = size
+        try? modelContext.save()
+    }
+
+    private func openSystemSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        UIApplication.shared.open(url)
     }
 }
