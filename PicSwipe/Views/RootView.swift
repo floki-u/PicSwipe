@@ -49,8 +49,19 @@ struct RootView: View {
                             )
                         case .settings:
                             SettingsView(path: $path)
-                        case .filter:
-                            EmptyView() // V1.1
+                        case .filter(let mode):
+                            FilterView(
+                                path: $path,
+                                cleanSession: $cleanSession,
+                                mode: mode
+                            )
+                        case .swipeWithFilter(let mode, let filter):
+                            SwipeView(
+                                path: $path,
+                                cleanSession: $cleanSession,
+                                mode: mode,
+                                filter: filter
+                            )
                         }
                     }
                 }

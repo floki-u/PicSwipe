@@ -22,6 +22,10 @@
 	<string>1</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>PicS 需要访问你的照片库来展示和清理照片。你的照片不会被上传或分享。</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>PressStart2P-Regular.ttf</string>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UIRequiresFullScreen</key>

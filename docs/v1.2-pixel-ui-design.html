@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PicS V1.2 — Pixel UI Design Spec</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════
+   RESET & BASE
+   ═══════════════════════════════════════════════ */
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0e0e1a;color:rgba(255,255,255,.9);font-family:-apple-system,'PingFang SC','SF Pro Display',system-ui,sans-serif;min-height:100vh;padding:32px 16px 60px}
+.pf{font-family:'Press Start 2P',monospace!important}
+
+/* ═══════════════════════════════════════════════
+   PAGE HEADER
+   ═══════════════════════════════════════════════ */
+.page-header{text-align:center;max-width:700px;margin:0 auto 28px}
+.page-header h1{font-size:28px;font-weight:800;letter-spacing:-.5px}
+.page-header h1 span{background:linear-gradient(135deg,#5de6c8,#9b7ec8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.page-header p{color:rgba(255,255,255,.5);font-size:14px;margin-top:8px;line-height:1.6}
+
+/* ═══════════════════════════════════════════════
+   STYLE TOGGLE TABS
+   ═══════════════════════════════════════════════ */
+.style-tabs{display:flex;justify-content:center;gap:12px;margin:0 auto 16px}
+.style-tab{padding:10px 28px;border-radius:24px;border:2px solid rgba(255,255,255,.15);color:rgba(255,255,255,.45);font-size:13px;font-weight:700;cursor:pointer;transition:all .25s;user-select:none;letter-spacing:.5px}
+.style-tab:hover{border-color:rgba(255,255,255,.3);color:rgba(255,255,255,.7)}
+.style-tab.active-a{border-color:#5de6c8;color:#5de6c8;background:rgba(93,230,200,.08);box-shadow:0 0 20px rgba(93,230,200,.1)}
+.style-tab.active-b{border-color:#e06c9f;color:#e06c9f;background:rgba(224,108,159,.08);box-shadow:0 0 20px rgba(224,108,159,.1)}
+
+/* ═══════════════════════════════════════════════
+   PAGE TABS
+   ═══════════════════════════════════════════════ */
+.page-tabs{display:flex;justify-content:center;gap:6px;margin:0 auto 28px;flex-wrap:wrap;max-width:560px}
+.ptab{padding:7px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;border:1.5px solid transparent;user-select:none}
+
+/* Style A page tab colors */
+.style-a-tabs .ptab{color:rgba(93,230,200,.5);border-color:rgba(93,230,200,.2)}
+.style-a-tabs .ptab.active{background:#5de6c8;color:#1a1a2e;border-color:#5de6c8}
+.style-a-tabs .ptab:hover:not(.active){border-color:rgba(93,230,200,.4)}
+
+/* Style B page tab colors */
+.style-b-tabs .ptab{color:rgba(224,108,159,.5);border-color:rgba(224,108,159,.2)}
+.style-b-tabs .ptab.active{background:#e06c9f;color:#1a1a2e;border-color:#e06c9f}
+.style-b-tabs .ptab:hover:not(.active){border-color:rgba(224,108,159,.4)}
+
+/* ═══════════════════════════════════════════════
+   PHONE FRAME
+   ═══════════════════════════════════════════════ */
+.phone-wrap{display:flex;justify-content:center;margin:0 auto 48px}
+.phone{width:375px;height:812px;border-radius:48px;position:relative;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06)}
+.phone-bezel{position:absolute;inset:0;border-radius:48px;pointer-events:none;z-index:200}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:160px;height:34px;background:#000;border-radius:0 0 20px 20px;z-index:150}
+.status-bar{position:absolute;top:0;left:0;right:0;height:54px;display:flex;justify-content:space-between;align-items:flex-end;padding:0 28px 8px;font-size:12px;font-weight:700;z-index:100}
+.screen{position:absolute;top:54px;left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.screen::-webkit-scrollbar{display:none}
+.home-indicator{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;z-index:100}
+
+/* Hide/show mockups */
+.mockup{display:none}
+.mockup.active{display:block}
+
+/* ═══════════════════════════════════════════════
+   SHARED CARD SYSTEM
+   ═══════════════════════════════════════════════ */
+.card{border-radius:14px;padding:16px;margin-bottom:12px}
+.card-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+
+/* Pixel border mixin — 4 corner squares */
+.pixel-border{position:relative}
+.pixel-border::before,.pixel-border::after{content:'';position:absolute;width:6px;height:6px}
+.pixel-border::before{top:-2px;left:-2px}
+.pixel-border::after{top:-2px;right:-2px}
+
+/* ═══════════════════════════════════════════════
+   STYLE A — DUNGEON CLEAN (Dark RPG)
+   ═══════════════════════════════════════════════ */
+.sa .phone{background:#12101f;border:3px solid #2a2745}
+.sa .phone-bezel{box-shadow:inset 0 0 40px rgba(93,230,200,.03)}
+.sa .status-bar{color:#5de6c8}
+.sa .home-indicator{background:rgba(93,230,200,.3)}
+.sa .screen{background:#12101f;padding:16px}
+
+/* -- HOME -- */
+.sa .home-logo{text-align:center;padding:20px 0 16px}
+.sa .home-logo .logo-text{font-size:28px;color:#5de6c8;text-shadow:0 0 16px rgba(93,230,200,.3);letter-spacing:3px}
+.sa .home-logo .sparkles{font-size:10px;color:#f0c674;letter-spacing:6px;margin-bottom:4px;display:block}
+.sa .home-logo .subtitle{font-size:9px;color:rgba(255,255,255,.35);margin-top:8px;letter-spacing:1px;font-family:-apple-system,'PingFang SC',sans-serif}
+
+.sa .hp-bar{background:rgba(93,230,200,.06);border:2px solid rgba(93,230,200,.15);border-radius:14px;padding:14px 16px;margin-bottom:12px}
+.sa .hp-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.sa .hp-label span:first-child{font-size:9px;color:#5de6c8;letter-spacing:1px}
+.sa .hp-label span:last-child{font-size:11px;color:rgba(255,255,255,.6);font-family:-apple-system,sans-serif}
+.sa .hp-track{height:20px;background:#1a1830;border-radius:4px;overflow:hidden;display:flex;gap:2px;padding:2px}
+.sa .hp-seg{flex:1;border-radius:2px;transition:background .3s}
+.sa .hp-seg.filled{background:linear-gradient(180deg,#5de6c8,#3baa92)}
+.sa .hp-seg.empty{background:rgba(93,230,200,.08)}
+.sa .hp-sub{font-size:10px;color:rgba(255,255,255,.35);margin-top:6px;text-align:right;font-family:-apple-system,sans-serif}
+
+.sa .start-btn{display:block;width:100%;padding:18px;border:2px solid #5de6c8;border-radius:12px;background:linear-gradient(180deg,rgba(93,230,200,.15),rgba(93,230,200,.05));color:#5de6c8;font-size:14px;letter-spacing:4px;text-align:center;cursor:pointer;margin-bottom:12px;transition:all .25s;text-shadow:0 0 10px rgba(93,230,200,.3)}
+.sa .start-btn:hover{background:rgba(93,230,200,.2);box-shadow:0 0 24px rgba(93,230,200,.15)}
+
+.sa .filter-row{display:flex;gap:10px;margin-bottom:6px}
+.sa .chip{flex:1;padding:10px;border:1.5px solid rgba(93,230,200,.2);border-radius:10px;text-align:center;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer;transition:all .2s;font-family:-apple-system,'PingFang SC',sans-serif}
+.sa .chip:hover,.sa .chip.on{border-color:#5de6c8;color:#5de6c8;background:rgba(93,230,200,.08)}
+.sa .more-link{text-align:right;font-size:11px;color:rgba(93,230,200,.5);margin-bottom:16px;cursor:pointer;font-family:-apple-system,sans-serif}
+
+.sa .stat-card{background:rgba(93,230,200,.04);border:1.5px solid rgba(93,230,200,.1);border-radius:12px;padding:14px;text-align:center}
+.sa .stat-card .s-icon{font-size:20px;margin-bottom:6px;display:block}
+.sa .stat-card .s-val{font-size:16px;color:#5de6c8;display:block;margin-bottom:3px}
+.sa .stat-card .s-label{font-size:11px;color:rgba(255,255,255,.4);font-family:-apple-system,'PingFang SC',sans-serif}
+
+/* -- SWIPE -- */
+.sa .swipe-screen{padding:0!important}
+.sa .swipe-photo{width:100%;height:100%;min-height:700px;background:linear-gradient(160deg,#1a1830 0%,#2a2050 40%,#1a2840 70%,#12101f 100%);position:relative}
+.sa .swipe-topbar{position:absolute;top:0;left:0;right:0;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(180deg,rgba(18,16,31,.85),transparent);z-index:10}
+.sa .swipe-back{font-size:11px;color:#5de6c8;cursor:pointer;letter-spacing:1px}
+.sa .swipe-badge{background:rgba(230,80,80,.9);color:#fff;font-size:9px;padding:4px 10px;border-radius:6px;font-family:-apple-system,sans-serif;font-weight:700}
+.sa .swipe-progress{font-size:10px;color:rgba(255,255,255,.6);letter-spacing:1px}
+.sa .swipe-bottom{position:absolute;bottom:0;left:0;right:0;padding:16px;background:linear-gradient(0deg,rgba(18,16,31,.9),transparent);z-index:10}
+.sa .swipe-meta{display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.4);margin-bottom:10px;font-family:-apple-system,sans-serif}
+.sa .swipe-bar{height:3px;background:rgba(93,230,200,.15);border-radius:2px;overflow:hidden}
+.sa .swipe-bar-fill{height:100%;width:25%;background:#5de6c8;border-radius:2px}
+.sa .swipe-hint{position:absolute;top:50%;font-size:10px;color:rgba(93,230,200,.12);letter-spacing:1px}
+.sa .swipe-hint.left{left:10px;transform:translateY(-50%) rotate(-90deg)}
+.sa .swipe-hint.up{top:80px;left:50%;transform:translateX(-50%);writing-mode:horizontal-tb}
+
+/* -- CONFIRM -- */
+.sa .confirm-title{text-align:center;font-size:14px;color:#e06c9f;margin-bottom:16px;letter-spacing:2px}
+.sa .confirm-preview{width:100%;aspect-ratio:3/4;border-radius:14px;background:linear-gradient(135deg,#2a2050,#1a2840);margin-bottom:12px;position:relative;overflow:hidden}
+.sa .confirm-preview .preview-overlay{position:absolute;bottom:0;left:0;right:0;padding:12px;background:linear-gradient(0deg,rgba(0,0,0,.7),transparent)}
+.sa .confirm-counter{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.sa .confirm-counter .cnt{font-size:12px;color:rgba(255,255,255,.6);letter-spacing:1px}
+.sa .confirm-counter .undo-btn{font-size:11px;color:#f0c674;cursor:pointer;font-family:-apple-system,sans-serif}
+.sa .confirm-info{font-size:12px;color:rgba(255,255,255,.4);text-align:center;margin-bottom:14px;font-family:-apple-system,sans-serif}
+.sa .delete-btn{display:block;width:100%;padding:16px;border-radius:12px;background:linear-gradient(180deg,#c0392b,#96281b);color:#fff;font-size:12px;text-align:center;letter-spacing:2px;cursor:pointer;border:none;margin-bottom:10px}
+.sa .action-links{display:flex;justify-content:center;gap:24px;font-size:11px;color:rgba(255,255,255,.35);font-family:-apple-system,sans-serif}
+.sa .action-links span{cursor:pointer}
+.sa .action-links span:hover{color:rgba(255,255,255,.6)}
+
+/* -- RESULT -- */
+.sa .result-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:680px;text-align:center;position:relative}
+.sa .result-deco{font-size:8px;color:rgba(240,198,116,.3);letter-spacing:4px;margin-bottom:16px}
+.sa .result-trophy{font-size:56px;margin-bottom:16px}
+.sa .result-number{font-size:48px;color:#5de6c8;text-shadow:0 0 20px rgba(93,230,200,.3);display:block;margin-bottom:4px}
+.sa .result-label{font-size:14px;color:rgba(255,255,255,.5);font-family:-apple-system,'PingFang SC',sans-serif;margin-bottom:20px}
+.sa .result-freed{font-size:11px;color:#f0c674;letter-spacing:1px;margin-bottom:32px;padding:8px 20px;border:1.5px solid rgba(240,198,116,.2);border-radius:8px;background:rgba(240,198,116,.05)}
+.sa .result-buttons{display:flex;gap:12px;width:100%;padding:0 20px}
+.sa .result-btn{flex:1;padding:14px;border-radius:12px;font-size:11px;text-align:center;cursor:pointer;letter-spacing:1px;transition:all .2s}
+.sa .result-btn.outline{border:1.5px solid rgba(93,230,200,.3);color:#5de6c8;background:transparent}
+.sa .result-btn.filled{border:1.5px solid #5de6c8;color:#12101f;background:#5de6c8}
+.sa .result-sparkles{position:absolute;top:60px;left:0;right:0;font-size:8px;color:rgba(240,198,116,.15);letter-spacing:8px;text-align:center}
+
+/* -- SETTINGS -- */
+.sa .settings-title{font-size:14px;color:#5de6c8;text-align:center;margin-bottom:16px;letter-spacing:2px}
+.sa .settings-section{border:1.5px solid rgba(93,230,200,.1);border-radius:14px;margin-bottom:12px;overflow:hidden}
+.sa .settings-section .sec-header{font-size:9px;color:rgba(93,230,200,.5);padding:10px 16px 6px;letter-spacing:1px}
+.sa .settings-item{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-top:1px solid rgba(93,230,200,.06);font-family:-apple-system,'PingFang SC',sans-serif;font-size:14px;color:rgba(255,255,255,.8)}
+.sa .settings-item:first-child{border-top:none}
+.sa .settings-item .si-right{font-size:12px;color:rgba(255,255,255,.35)}
+.sa .settings-item .arrow{color:rgba(93,230,200,.3);margin-left:8px}
+.sa .settings-app-card{border:1.5px solid rgba(93,230,200,.1);border-radius:14px;padding:20px;text-align:center;margin-bottom:12px}
+.sa .settings-app-card .app-icon{font-size:36px;margin-bottom:8px;display:block}
+.sa .settings-app-card .app-name{font-size:14px;color:#5de6c8;letter-spacing:2px;display:block;margin-bottom:4px}
+.sa .settings-app-card .app-ver{font-size:11px;color:rgba(255,255,255,.3);font-family:-apple-system,sans-serif}
+
+.sa .batch-selector{display:flex;gap:8px;padding:4px}
+.sa .batch-opt{padding:6px 12px;border-radius:6px;font-size:12px;color:rgba(255,255,255,.4);cursor:pointer;transition:all .2s;border:1px solid transparent}
+.sa .batch-opt.active{background:rgba(93,230,200,.15);color:#5de6c8;border-color:rgba(93,230,200,.3)}
+
+/* ═══════════════════════════════════════════════
+   STYLE B — ARCADE CABINET (80s Arcade)
+   ═══════════════════════════════════════════════ */
+.sb .phone{background:#0f0a1e;border:3px solid #3a2060}
+.sb .phone-bezel{box-shadow:inset 0 0 40px rgba(224,108,159,.03)}
+.sb .status-bar{color:#e06c9f}
+.sb .home-indicator{background:rgba(224,108,159,.3)}
+.sb .screen{background:#0f0a1e;padding:16px}
+
+/* CRT scanline overlay */
+.sb .screen::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.06) 2px,rgba(0,0,0,.06) 4px);pointer-events:none;z-index:50}
+
+/* -- HOME -- */
+.sb .home-logo{text-align:center;padding:20px 0 16px}
+.sb .home-logo .logo-text{font-size:28px;color:#e06c9f;text-shadow:0 0 16px rgba(224,108,159,.3),2px 2px 0 #9b7ec8;letter-spacing:3px}
+.sb .home-logo .sparkles{font-size:10px;color:#f0c674;letter-spacing:6px;margin-bottom:4px;display:block}
+.sb .home-logo .subtitle{font-size:9px;color:rgba(255,255,255,.35);margin-top:8px;letter-spacing:1px;font-family:-apple-system,'PingFang SC',sans-serif}
+.sb .home-logo .coin-text{font-size:7px;color:rgba(240,198,116,.5);margin-top:6px;display:block;letter-spacing:2px}
+
+.sb .hp-bar{background:rgba(224,108,159,.05);border:2px solid rgba(155,126,200,.2);border-radius:14px;padding:14px 16px;margin-bottom:12px}
+.sb .hp-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.sb .hp-label span:first-child{font-size:9px;color:#e06c9f;letter-spacing:1px}
+.sb .hp-label span:last-child{font-size:11px;color:rgba(255,255,255,.6);font-family:-apple-system,sans-serif}
+.sb .hp-track{height:20px;background:#150f25;border-radius:4px;overflow:hidden;display:flex;gap:2px;padding:2px}
+.sb .hp-seg{flex:1;border-radius:2px;transition:background .3s}
+.sb .hp-seg.filled{background:linear-gradient(180deg,#e06c9f,#b0487a)}
+.sb .hp-seg.empty{background:rgba(224,108,159,.06)}
+.sb .hp-sub{font-size:10px;color:rgba(255,255,255,.35);margin-top:6px;text-align:right;font-family:-apple-system,sans-serif}
+
+.sb .start-btn{display:block;width:100%;padding:18px;border:2px solid #e06c9f;border-radius:12px;background:linear-gradient(180deg,rgba(224,108,159,.15),rgba(155,126,200,.08));color:#e06c9f;font-size:14px;letter-spacing:4px;text-align:center;cursor:pointer;margin-bottom:12px;transition:all .25s;text-shadow:0 0 10px rgba(224,108,159,.3)}
+.sb .start-btn:hover{background:rgba(224,108,159,.2);box-shadow:0 0 24px rgba(224,108,159,.15)}
+
+.sb .filter-row{display:flex;gap:10px;margin-bottom:6px}
+.sb .chip{flex:1;padding:10px;border:1.5px solid rgba(155,126,200,.25);border-radius:10px;text-align:center;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer;transition:all .2s;font-family:-apple-system,'PingFang SC',sans-serif}
+.sb .chip:hover,.sb .chip.on{border-color:#9b7ec8;color:#9b7ec8;background:rgba(155,126,200,.1)}
+.sb .more-link{text-align:right;font-size:11px;color:rgba(224,108,159,.5);margin-bottom:16px;cursor:pointer;font-family:-apple-system,sans-serif}
+
+.sb .stat-card{background:rgba(155,126,200,.04);border:1.5px solid rgba(155,126,200,.12);border-radius:12px;padding:14px;text-align:center}
+.sb .stat-card .s-icon{font-size:20px;margin-bottom:6px;display:block}
+.sb .stat-card .s-val{font-size:16px;color:#e06c9f;display:block;margin-bottom:3px}
+.sb .stat-card .s-label{font-size:11px;color:rgba(255,255,255,.4);font-family:-apple-system,'PingFang SC',sans-serif}
+
+/* -- SWIPE -- */
+.sb .swipe-screen{padding:0!important}
+.sb .swipe-photo{width:100%;height:100%;min-height:700px;background:linear-gradient(160deg,#1a0f2e 0%,#2a1545 40%,#1a1040 70%,#0f0a1e 100%);position:relative}
+.sb .swipe-topbar{position:absolute;top:0;left:0;right:0;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(180deg,rgba(15,10,30,.85),transparent);z-index:10}
+.sb .swipe-back{font-size:11px;color:#e06c9f;cursor:pointer;letter-spacing:1px}
+.sb .swipe-badge{background:rgba(224,108,159,.85);color:#fff;font-size:9px;padding:4px 10px;border-radius:6px;font-family:-apple-system,sans-serif;font-weight:700}
+.sb .swipe-progress{font-size:10px;color:rgba(255,255,255,.6);letter-spacing:1px}
+.sb .swipe-bottom{position:absolute;bottom:0;left:0;right:0;padding:16px;background:linear-gradient(0deg,rgba(15,10,30,.9),transparent);z-index:10}
+.sb .swipe-meta{display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.4);margin-bottom:10px;font-family:-apple-system,sans-serif}
+.sb .swipe-bar{height:3px;background:rgba(224,108,159,.15);border-radius:2px;overflow:hidden}
+.sb .swipe-bar-fill{height:100%;width:25%;background:linear-gradient(90deg,#e06c9f,#9b7ec8);border-radius:2px}
+.sb .swipe-hint{position:absolute;top:50%;font-size:10px;color:rgba(224,108,159,.1);letter-spacing:1px}
+.sb .swipe-hint.left{left:10px;transform:translateY(-50%) rotate(-90deg)}
+.sb .swipe-hint.up{top:80px;left:50%;transform:translateX(-50%)}
+
+/* -- CONFIRM -- */
+.sb .confirm-title{text-align:center;font-size:14px;color:#e06c9f;margin-bottom:16px;letter-spacing:2px}
+.sb .confirm-preview{width:100%;aspect-ratio:3/4;border-radius:14px;background:linear-gradient(135deg,#2a1545,#1a1040);margin-bottom:12px;position:relative;overflow:hidden;border:1.5px solid rgba(155,126,200,.15)}
+.sb .confirm-preview .preview-overlay{position:absolute;bottom:0;left:0;right:0;padding:12px;background:linear-gradient(0deg,rgba(0,0,0,.7),transparent)}
+.sb .confirm-counter{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.sb .confirm-counter .cnt{font-size:12px;color:rgba(255,255,255,.6);letter-spacing:1px}
+.sb .confirm-counter .undo-btn{font-size:11px;color:#f0c674;cursor:pointer;font-family:-apple-system,sans-serif}
+.sb .confirm-info{font-size:12px;color:rgba(255,255,255,.4);text-align:center;margin-bottom:14px;font-family:-apple-system,sans-serif}
+.sb .delete-btn{display:block;width:100%;padding:16px;border-radius:12px;background:linear-gradient(180deg,#c0392b,#96281b);color:#fff;font-size:12px;text-align:center;letter-spacing:2px;cursor:pointer;border:none;margin-bottom:10px}
+.sb .action-links{display:flex;justify-content:center;gap:24px;font-size:11px;color:rgba(255,255,255,.35);font-family:-apple-system,sans-serif}
+.sb .action-links span{cursor:pointer}
+.sb .action-links span:hover{color:rgba(255,255,255,.6)}
+
+/* -- RESULT -- */
+.sb .result-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:680px;text-align:center;position:relative}
+.sb .result-deco{font-size:8px;color:rgba(155,126,200,.3);letter-spacing:4px;margin-bottom:16px}
+.sb .result-trophy{font-size:56px;margin-bottom:16px}
+.sb .result-number{font-size:48px;color:#e06c9f;text-shadow:0 0 20px rgba(224,108,159,.3),2px 2px 0 #9b7ec8;display:block;margin-bottom:4px}
+.sb .result-label{font-size:14px;color:rgba(255,255,255,.5);font-family:-apple-system,'PingFang SC',sans-serif;margin-bottom:20px}
+.sb .result-freed{font-size:11px;color:#f0c674;letter-spacing:1px;margin-bottom:32px;padding:8px 20px;border:1.5px solid rgba(240,198,116,.2);border-radius:8px;background:rgba(240,198,116,.05)}
+.sb .result-buttons{display:flex;gap:12px;width:100%;padding:0 20px}
+.sb .result-btn{flex:1;padding:14px;border-radius:12px;font-size:11px;text-align:center;cursor:pointer;letter-spacing:1px;transition:all .2s}
+.sb .result-btn.outline{border:1.5px solid rgba(224,108,159,.3);color:#e06c9f;background:transparent}
+.sb .result-btn.filled{border:1.5px solid #e06c9f;color:#0f0a1e;background:#e06c9f}
+.sb .result-sparkles{position:absolute;top:60px;left:0;right:0;font-size:8px;color:rgba(240,198,116,.15);letter-spacing:8px;text-align:center}
+
+/* -- SETTINGS -- */
+.sb .settings-title{font-size:14px;color:#e06c9f;text-align:center;margin-bottom:16px;letter-spacing:2px}
+.sb .settings-section{border:1.5px solid rgba(155,126,200,.12);border-radius:14px;margin-bottom:12px;overflow:hidden}
+.sb .settings-section .sec-header{font-size:9px;color:rgba(224,108,159,.5);padding:10px 16px 6px;letter-spacing:1px}
+.sb .settings-item{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-top:1px solid rgba(155,126,200,.08);font-family:-apple-system,'PingFang SC',sans-serif;font-size:14px;color:rgba(255,255,255,.8)}
+.sb .settings-item:first-child{border-top:none}
+.sb .settings-item .si-right{font-size:12px;color:rgba(255,255,255,.35)}
+.sb .settings-item .arrow{color:rgba(224,108,159,.3);margin-left:8px}
+.sb .settings-app-card{border:1.5px solid rgba(155,126,200,.12);border-radius:14px;padding:20px;text-align:center;margin-bottom:12px}
+.sb .settings-app-card .app-icon{font-size:36px;margin-bottom:8px;display:block}
+.sb .settings-app-card .app-name{font-size:14px;color:#e06c9f;letter-spacing:2px;display:block;margin-bottom:4px;text-shadow:1px 1px 0 #9b7ec8}
+.sb .settings-app-card .app-ver{font-size:11px;color:rgba(255,255,255,.3);font-family:-apple-system,sans-serif}
+
+.sb .batch-selector{display:flex;gap:8px;padding:4px}
+.sb .batch-opt{padding:6px 12px;border-radius:6px;font-size:12px;color:rgba(255,255,255,.4);cursor:pointer;transition:all .2s;border:1px solid transparent}
+.sb .batch-opt.active{background:rgba(224,108,159,.12);color:#e06c9f;border-color:rgba(224,108,159,.3)}
+
+/* ═══════════════════════════════════════════════
+   COMPARISON TABLE
+   ═══════════════════════════════════════════════ */
+.compare{max-width:760px;margin:0 auto;padding:40px 0}
+.compare h2{text-align:center;font-size:18px;margin-bottom:24px;color:rgba(255,255,255,.8)}
+.compare table{width:100%;border-collapse:collapse;font-size:13px}
+.compare th{text-align:left;padding:12px 16px;border-bottom:2px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);font-weight:600}
+.compare td{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.05);color:rgba(255,255,255,.7);vertical-align:top;line-height:1.5}
+.compare tr:hover td{background:rgba(255,255,255,.02)}
+.compare .tag-a{display:inline-block;padding:2px 8px;border-radius:4px;background:rgba(93,230,200,.1);color:#5de6c8;font-size:11px;font-weight:600}
+.compare .tag-b{display:inline-block;padding:2px 8px;border-radius:4px;background:rgba(224,108,159,.1);color:#e06c9f;font-size:11px;font-weight:600}
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════ */
+@media(max-width:440px){
+  .phone{width:100%;max-width:375px;height:calc(100vw * 2.165)}
+  body{padding:20px 8px 40px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE HEADER
+     ═══════════════════════════════════════════════ -->
+<div class="page-header">
+  <h1><span>PicS V1.2</span> — Pixel UI Design</h1>
+  <p>两套像素风格方案对比：Dungeon Clean（暗黑地牢）vs Arcade Cabinet（街机厅）</p>
+</div>
+
+<!-- Style toggle -->
+<div class="style-tabs">
+  <div class="style-tab active-a" onclick="switchStyle('a')" id="tab-a">🏰 Dungeon Clean</div>
+  <div class="style-tab" onclick="switchStyle('b')" id="tab-b">🕹️ Arcade Cabinet</div>
+</div>
+
+<!-- Page tabs — Style A -->
+<div class="page-tabs style-a-tabs" id="pages-a">
+  <div class="ptab active" onclick="switchPage('a','home')">首页</div>
+  <div class="ptab" onclick="switchPage('a','swipe')">滑动浏览</div>
+  <div class="ptab" onclick="switchPage('a','confirm')">确认删除</div>
+  <div class="ptab" onclick="switchPage('a','result')">结果</div>
+  <div class="ptab" onclick="switchPage('a','settings')">设置</div>
+</div>
+
+<!-- Page tabs — Style B (hidden initially) -->
+<div class="page-tabs style-b-tabs" id="pages-b" style="display:none">
+  <div class="ptab active" onclick="switchPage('b','home')">首页</div>
+  <div class="ptab" onclick="switchPage('b','swipe')">滑动浏览</div>
+  <div class="ptab" onclick="switchPage('b','confirm')">确认删除</div>
+  <div class="ptab" onclick="switchPage('b','result')">结果</div>
+  <div class="ptab" onclick="switchPage('b','settings')">设置</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     STYLE A — DUNGEON CLEAN
+     ═══════════════════════════════════════════════ -->
+<div class="phone-wrap sa" id="phone-a">
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar">
+      <span>9:41</span>
+      <span>⚔️ 📶 🔋</span>
+    </div>
+    <div class="phone-bezel"></div>
+    <div class="home-indicator"></div>
+
+    <!-- HOME -->
+    <div class="screen mockup active" id="a-home">
+      <div class="home-logo">
+        <span class="sparkles pf">✦ ✦ ✦ ✦ ✦</span>
+        <div class="logo-text pf">PicS</div>
+        <div class="subtitle">⚔️ 相册清理 · 地牢探索</div>
+      </div>
+
+      <div class="hp-bar">
+        <div class="hp-label">
+          <span class="pf">HP BAR</span>
+          <span>已用 68.2 / 128 GB</span>
+        </div>
+        <div class="hp-track">
+          <div class="hp-seg filled"></div><div class="hp-seg filled"></div>
+          <div class="hp-seg filled"></div><div class="hp-seg filled"></div>
+          <div class="hp-seg filled"></div><div class="hp-seg filled"></div>
+          <div class="hp-seg filled"></div><div class="hp-seg empty"></div>
+          <div class="hp-seg empty"></div><div class="hp-seg empty"></div>
+        </div>
+        <div class="hp-sub">剩余 59.8 GB 可用</div>
+      </div>
+
+      <div class="start-btn pf" onclick="switchPage('a','swipe')">▶ START</div>
+
+      <div class="filter-row">
+        <div class="chip" onclick="this.classList.toggle('on')">📱 截图</div>
+        <div class="chip" onclick="this.classList.toggle('on')">📦 大文件</div>
+      </div>
+      <div class="more-link">更多筛选 ›</div>
+
+      <div class="card-row">
+        <div class="stat-card">
+          <span class="s-icon">🖼️</span>
+          <span class="s-val pf">3,847</span>
+          <span class="s-label">照片</span>
+        </div>
+        <div class="stat-card">
+          <span class="s-icon">🎬</span>
+          <span class="s-val pf">284</span>
+          <span class="s-label">视频</span>
+        </div>
+      </div>
+      <div class="card-row">
+        <div class="stat-card">
+          <span class="s-icon">🗑️</span>
+          <span class="s-val pf">2.4G</span>
+          <span class="s-label">已释放</span>
+        </div>
+        <div class="stat-card">
+          <span class="s-icon">⚙️</span>
+          <span class="s-val pf">···</span>
+          <span class="s-label">设置</span>
+        </div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+
+    <!-- SWIPE -->
+    <div class="screen swipe-screen mockup" id="a-swipe">
+      <div class="swipe-photo">
+        <div class="swipe-topbar">
+          <span class="swipe-back pf" onclick="switchPage('a','home')">← ESC</span>
+          <span class="swipe-badge">🗑 3</span>
+          <span class="swipe-progress pf">5/20</span>
+        </div>
+        <div class="swipe-hint left pf">← DELETE</div>
+        <div class="swipe-hint up pf">↑ KEEP</div>
+        <div class="swipe-bottom">
+          <div class="swipe-meta">
+            <span>2026-03-15 14:32</span>
+            <span>4.2 MB</span>
+          </div>
+          <div class="swipe-bar"><div class="swipe-bar-fill"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIRM -->
+    <div class="screen mockup" id="a-confirm">
+      <div class="confirm-title pf">确认删除</div>
+      <div class="confirm-preview">
+        <div class="preview-overlay">
+          <span style="font-size:11px;color:rgba(255,255,255,.5)">IMG_4521.HEIC · 4.2 MB</span>
+        </div>
+      </div>
+      <div class="confirm-counter">
+        <span class="cnt pf">1 / 3</span>
+        <span class="undo-btn">↩ 撤销</span>
+      </div>
+      <div class="confirm-info">共 3 张照片 · 12.6 MB</div>
+      <div class="delete-btn pf">🗑️ 确认删除</div>
+      <div class="action-links">
+        <span>全部取消</span>
+        <span>返回浏览</span>
+      </div>
+    </div>
+
+    <!-- RESULT -->
+    <div class="screen mockup" id="a-result">
+      <div class="result-screen">
+        <div class="result-sparkles pf">✦ · ✦ · ✦ · ✦ · ✦</div>
+        <div class="result-deco pf">QUEST COMPLETE</div>
+        <div class="result-trophy">🏆</div>
+        <span class="result-number pf">5</span>
+        <div class="result-label">张照片已清理</div>
+        <div class="result-freed pf">+ 24.8 MB FREED</div>
+        <div class="result-buttons">
+          <div class="result-btn outline pf" onclick="switchPage('a','home')">HOME</div>
+          <div class="result-btn filled pf">NEXT ▶</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="screen mockup" id="a-settings">
+      <div class="settings-title pf">SETTINGS</div>
+      <div class="settings-app-card">
+        <span class="app-icon">⚔️</span>
+        <span class="app-name pf">PicS</span>
+        <span class="app-ver">V1.2.0 · Dungeon Edition</span>
+      </div>
+
+      <div class="settings-section">
+        <div class="sec-header pf">GENERAL</div>
+        <div class="settings-item">
+          每组数量
+          <div style="display:flex;align-items:center">
+            <div class="batch-selector">
+              <span class="batch-opt" onclick="selectBatch(this)">10</span>
+              <span class="batch-opt active" onclick="selectBatch(this)">20</span>
+              <span class="batch-opt" onclick="selectBatch(this)">30</span>
+              <span class="batch-opt" onclick="selectBatch(this)">50</span>
+            </div>
+          </div>
+        </div>
+        <div class="settings-item">
+          清理模式
+          <span class="si-right">照片 <span class="arrow">›</span></span>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="sec-header pf">STATS</div>
+        <div class="settings-item">
+          累计清理
+          <span class="si-right">247 张</span>
+        </div>
+        <div class="settings-item">
+          释放空间
+          <span class="si-right">1.82 GB</span>
+        </div>
+        <div class="settings-item">
+          清理次数
+          <span class="si-right">18 次</span>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="sec-header pf">ABOUT</div>
+        <div class="settings-item">
+          隐私政策
+          <span class="si-right"><span class="arrow">›</span></span>
+        </div>
+        <div class="settings-item">
+          评价应用
+          <span class="si-right"><span class="arrow">›</span></span>
+        </div>
+        <div class="settings-item">
+          分享给朋友
+          <span class="si-right"><span class="arrow">›</span></span>
+        </div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     STYLE B — ARCADE CABINET
+     ═══════════════════════════════════════════════ -->
+<div class="phone-wrap sb" id="phone-b" style="display:none">
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar">
+      <span>9:41</span>
+      <span>🕹️ 📶 🔋</span>
+    </div>
+    <div class="phone-bezel"></div>
+    <div class="home-indicator"></div>
+
+    <!-- HOME -->
+    <div class="screen mockup active" id="b-home">
+      <div class="home-logo">
+        <span class="sparkles pf">★ · ★ · ★</span>
+        <div class="logo-text pf">PicS</div>
+        <div class="subtitle">🕹️ 相册清理 · 街机模式</div>
+        <span class="coin-text pf">INSERT COIN TO PLAY</span>
+      </div>
+
+      <div class="hp-bar">
+        <div class="hp-label">
+          <span class="pf">STORAGE</span>
+          <span>已用 68.2 / 128 GB</span>
+        </div>
+        <div class="hp-track">
+          <div class="hp-seg filled"></div><div class="hp-seg filled"></div>
+          <div class="hp-seg filled"></div><div class="hp-seg filled"></div>
+          <div class="hp-seg filled"></div><div class="hp-seg filled"></div>
+          <div class="hp-seg filled"></div><div class="hp-seg empty"></div>
+          <div class="hp-seg empty"></div><div class="hp-seg empty"></div>
+        </div>
+        <div class="hp-sub">剩余 59.8 GB 可用</div>
+      </div>
+
+      <div class="start-btn pf" onclick="switchPage('b','swipe')">▶ PRESS START</div>
+
+      <div class="filter-row">
+        <div class="chip" onclick="this.classList.toggle('on')">📱 截图</div>
+        <div class="chip" onclick="this.classList.toggle('on')">📦 大文件</div>
+      </div>
+      <div class="more-link">更多筛选 ›</div>
+
+      <div class="card-row">
+        <div class="stat-card">
+          <span class="s-icon">🖼️</span>
+          <span class="s-val pf">3,847</span>
+          <span class="s-label">照片</span>
+        </div>
+        <div class="stat-card">
+          <span class="s-icon">🎬</span>
+          <span class="s-val pf">284</span>
+          <span class="s-label">视频</span>
+        </div>
+      </div>
+      <div class="card-row">
+        <div class="stat-card">
+          <span class="s-icon">🗑️</span>
+          <span class="s-val pf">2.4G</span>
+          <span class="s-label">已释放</span>
+        </div>
+        <div class="stat-card">
+          <span class="s-icon">⚙️</span>
+          <span class="s-val pf">···</span>
+          <span class="s-label">设置</span>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:12px;font-size:8px;color:rgba(155,126,200,.25)" class="pf">
+        HI-SCORE: 247 · CREDIT: 18
+      </div>
+      <div style="height:20px"></div>
+    </div>
+
+    <!-- SWIPE -->
+    <div class="screen swipe-screen mockup" id="b-swipe">
+      <div class="swipe-photo">
+        <div class="swipe-topbar">
+          <span class="swipe-back pf" onclick="switchPage('b','home')">← BACK</span>
+          <span class="swipe-badge">🗑 3</span>
+          <span class="swipe-progress pf">5/20</span>
+        </div>
+        <div class="swipe-hint left pf">← DELETE</div>
+        <div class="swipe-hint up pf">↑ KEEP</div>
+        <div class="swipe-bottom">
+          <div class="swipe-meta">
+            <span>2026-03-15 14:32</span>
+            <span>4.2 MB</span>
+          </div>
+          <div class="swipe-bar"><div class="swipe-bar-fill"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIRM -->
+    <div class="screen mockup" id="b-confirm">
+      <div class="confirm-title pf">确认删除</div>
+      <div class="confirm-preview">
+        <div class="preview-overlay">
+          <span style="font-size:11px;color:rgba(255,255,255,.5)">IMG_4521.HEIC · 4.2 MB</span>
+        </div>
+      </div>
+      <div class="confirm-counter">
+        <span class="cnt pf">1 / 3</span>
+        <span class="undo-btn">↩ 撤销</span>
+      </div>
+      <div class="confirm-info">共 3 张照片 · 12.6 MB</div>
+      <div class="delete-btn pf">🗑️ 确认删除</div>
+      <div class="action-links">
+        <span>全部取消</span>
+        <span>返回浏览</span>
+      </div>
+    </div>
+
+    <!-- RESULT -->
+    <div class="screen mockup" id="b-result">
+      <div class="result-screen">
+        <div class="result-sparkles pf">★ · ★ · ★ · ★ · ★</div>
+        <div class="result-deco pf">GAME CLEAR!</div>
+        <div class="result-trophy">👾</div>
+        <span class="result-number pf">5</span>
+        <div class="result-label">张照片已清理</div>
+        <div class="result-freed pf">+ 24.8 MB FREED</div>
+        <div class="result-buttons">
+          <div class="result-btn outline pf" onclick="switchPage('b','home')">TITLE</div>
+          <div class="result-btn filled pf">CONTINUE ▶</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="screen mockup" id="b-settings">
+      <div class="settings-title pf">OPTIONS</div>
+      <div class="settings-app-card">
+        <span class="app-icon">👾</span>
+        <span class="app-name pf">PicS</span>
+        <span class="app-ver">V1.2.0 · Arcade Edition</span>
+      </div>
+
+      <div class="settings-section">
+        <div class="sec-header pf">GAMEPLAY</div>
+        <div class="settings-item">
+          每组数量
+          <div style="display:flex;align-items:center">
+            <div class="batch-selector">
+              <span class="batch-opt" onclick="selectBatch(this)">10</span>
+              <span class="batch-opt active" onclick="selectBatch(this)">20</span>
+              <span class="batch-opt" onclick="selectBatch(this)">30</span>
+              <span class="batch-opt" onclick="selectBatch(this)">50</span>
+            </div>
+          </div>
+        </div>
+        <div class="settings-item">
+          清理模式
+          <span class="si-right">照片 <span class="arrow">›</span></span>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="sec-header pf">HI-SCORES</div>
+        <div class="settings-item">
+          累计清理
+          <span class="si-right">247 张</span>
+        </div>
+        <div class="settings-item">
+          释放空间
+          <span class="si-right">1.82 GB</span>
+        </div>
+        <div class="settings-item">
+          游玩次数
+          <span class="si-right">18 次</span>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="sec-header pf">SYSTEM</div>
+        <div class="settings-item">
+          隐私政策
+          <span class="si-right"><span class="arrow">›</span></span>
+        </div>
+        <div class="settings-item">
+          评价应用
+          <span class="si-right"><span class="arrow">›</span></span>
+        </div>
+        <div class="settings-item">
+          分享给朋友
+          <span class="si-right"><span class="arrow">›</span></span>
+        </div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     COMPARISON TABLE
+     ═══════════════════════════════════════════════ -->
+<div class="compare">
+  <h2>方案对比</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:22%">维度</th>
+        <th style="width:39%"><span class="tag-a">A</span> Dungeon Clean</th>
+        <th style="width:39%"><span class="tag-b">B</span> Arcade Cabinet</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>主题</td>
+        <td>暗黑地牢 RPG — 清理=探索副本，释放空间=战胜怪物</td>
+        <td>80s 街机厅 — 清理=投币游戏，完成=通关得分</td>
+      </tr>
+      <tr>
+        <td>主色</td>
+        <td>深邃藏青底 + 柔和青绿 <code>#5de6c8</code></td>
+        <td>暗紫底 + 柔粉 <code>#e06c9f</code> + 淡紫 <code>#9b7ec8</code></td>
+      </tr>
+      <tr>
+        <td>辅助色</td>
+        <td>温暖琥珀 <code>#f0c674</code> 用于 XP / 成就</td>
+        <td>温暖琥珀 <code>#f0c674</code> 用于 COIN / 得分</td>
+      </tr>
+      <tr>
+        <td>存储条</td>
+        <td>HP 血条风格 — 分段像素条</td>
+        <td>能量条风格 — 分段像素条 + 渐变填充</td>
+      </tr>
+      <tr>
+        <td>CTA 按钮</td>
+        <td>像素文字 ▶ START — 地牢入口感</td>
+        <td>像素文字 ▶ PRESS START — 投币启动感</td>
+      </tr>
+      <tr>
+        <td>完成动效</td>
+        <td>QUEST COMPLETE 🏆 — 任务完成</td>
+        <td>GAME CLEAR! 👾 — 通关庆祝</td>
+      </tr>
+      <tr>
+        <td>设置页</td>
+        <td>SETTINGS + STATS — 冒险者数据面板</td>
+        <td>OPTIONS + HI-SCORES — 街机排行榜感</td>
+      </tr>
+      <tr>
+        <td>CRT 效果</td>
+        <td>无 — 保持地牢石壁的干净质感</td>
+        <td>微妙扫描线叠加 — 模拟 CRT 显示器</td>
+      </tr>
+      <tr>
+        <td>情绪</td>
+        <td>冷静、沉浸、有掌控感</td>
+        <td>怀旧、有趣、轻快节奏</td>
+      </tr>
+      <tr>
+        <td>目标人群</td>
+        <td>喜欢 RPG/Roguelike 的玩家</td>
+        <td>怀旧游戏爱好者、更广泛的休闲人群</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SCRIPTS
+     ═══════════════════════════════════════════════ -->
+<script>
+let currentStyle = 'a';
+let currentPages = { a: 'home', b: 'home' };
+
+function switchStyle(style) {
+  currentStyle = style;
+  // Update style tabs
+  document.getElementById('tab-a').className = style === 'a' ? 'style-tab active-a' : 'style-tab';
+  document.getElementById('tab-b').className = style === 'b' ? 'style-tab active-b' : 'style-tab';
+  // Show/hide page tabs
+  document.getElementById('pages-a').style.display = style === 'a' ? 'flex' : 'none';
+  document.getElementById('pages-b').style.display = style === 'b' ? 'flex' : 'none';
+  // Show/hide phones
+  document.getElementById('phone-a').style.display = style === 'a' ? 'flex' : 'none';
+  document.getElementById('phone-b').style.display = style === 'b' ? 'flex' : 'none';
+}
+
+function switchPage(style, page) {
+  currentPages[style] = page;
+  const pages = ['home', 'swipe', 'confirm', 'result', 'settings'];
+  // Update mockups
+  pages.forEach(p => {
+    const el = document.getElementById(style + '-' + p);
+    if (el) el.classList.toggle('active', p === page);
+  });
+  // Update page tab active state
+  const tabContainer = document.getElementById('pages-' + style);
+  const tabs = tabContainer.querySelectorAll('.ptab');
+  tabs.forEach((tab, i) => {
+    tab.classList.toggle('active', pages[i] === page);
+  });
+}
+
+function selectBatch(el) {
+  const siblings = el.parentElement.querySelectorAll('.batch-opt');
+  siblings.forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+}
+</script>
+
+</body>
+</html>

@@ -15,9 +15,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ✅ MVP V1.0 实施计划：`docs/superpowers/plans/2026-03-20-picswipe-mvp.md`
 - ✅ MVP V1.0 代码开发已完成
 - ✅ V1.1 细节打磨与体验优化已完成：`docs/superpowers/specs/2026-03-20-pics-v1.1-implementation.md`
+- ✅ V1.2 筛选系统 + 首页重设计：筛选清理、快捷芯片、色彩换肤
+- ✅ V1.2 Dungeon Pixel 全面像素化改造：Press Start 2P 字体、HP Bar、边框卡片、RPG 文案
 - ✅ 里程碑追踪：`docs/superpowers/plans/2026-03-20-pics-milestones.md`
 - ✅ 待优化与未来规划：`docs/superpowers/plans/2026-03-20-pics-backlog.md`
-- ⬜ V1.2 筛选与增强
 - ⬜ V2.0 智能清理
 
 ## Tech Stack
@@ -34,8 +35,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```
 PicSwipe/
 ├── Assets.xcassets/        — 应用图标
+├── Fonts/                  — 自定义字体（Press Start 2P）
 ├── App/                    — App entry point, lifecycle
 ├── Views/                  — SwiftUI views
+│   ├── DesignSystem.swift  — 设计系统（色彩、字体、组件）
 │   ├── HomeView            — 首页仪表盘
 │   ├── SwipeView           — 滑动浏览页（核心）
 │   ├── SwipeCardView       — 单张卡片（照片/视频）

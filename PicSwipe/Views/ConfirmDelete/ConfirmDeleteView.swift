@@ -121,9 +121,8 @@ struct ConfirmDeleteView: View {
             // 顶部标题
             VStack(spacing: Spacing.xs) {
                 Text("确认删除")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.white)
+                    .font(.pixel(12))
+                    .foregroundStyle(Color.destructiveRed)
                 Text("以下 \(vm.markedAssets.count) 个视频将被移到最近删除")
                     .font(.caption)
                     .foregroundStyle(Color.textSecondary)
@@ -236,8 +235,12 @@ struct ConfirmDeleteView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(isDeleting ? Color.destructiveRed.opacity(0.6) : Color.destructiveRed)
+                .background(isDeleting ? AnyShapeStyle(Color.destructiveRed.opacity(0.6)) : AnyShapeStyle(LinearGradient.destructiveGradient))
                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.button))
+                .overlay(
+                    RoundedRectangle(cornerRadius: CornerRadius.button)
+                        .stroke(Color.destructiveRed.opacity(0.6), lineWidth: 1)
+                )
             }
             .disabled(isDeleting)
 
@@ -270,9 +273,8 @@ struct ConfirmDeleteView: View {
     private var headerSection: some View {
         VStack(spacing: Spacing.xs) {
             Text("确认删除")
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundStyle(.white)
+                .font(.pixel(12))
+                .foregroundStyle(Color.destructiveRed)
             Text("左右滑动查看，点击照片查看大图")
                 .font(.caption)
                 .foregroundStyle(Color.textSecondary)
@@ -338,8 +340,7 @@ struct ConfirmDeleteView: View {
             HStack {
                 // 计数标签
                 Text("\(index + 1)/\(vm.markedAssets.count)")
-                    .font(.caption)
-                    .fontWeight(.bold)
+                    .font(.pixel(7))
                     .foregroundStyle(.white)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
@@ -451,8 +452,12 @@ struct ConfirmDeleteView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(isDeleting ? Color.destructiveRed.opacity(0.6) : Color.destructiveRed)
+                .background(isDeleting ? AnyShapeStyle(Color.destructiveRed.opacity(0.6)) : AnyShapeStyle(LinearGradient.destructiveGradient))
                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.button))
+                .overlay(
+                    RoundedRectangle(cornerRadius: CornerRadius.button)
+                        .stroke(Color.destructiveRed.opacity(0.6), lineWidth: 1)
+                )
             }
             .disabled(isDeleting)
 
@@ -486,6 +491,12 @@ struct ConfirmDeleteView: View {
                 mode: cleanSession?.mode ?? .photo,
                 in: modelContext
             )
+            // 标记用户已完成过一次删除，后续跳过确认页
+            let settings = statsService.getSettings(in: modelContext)
+            if !settings.hasConfirmedDeleteBefore {
+                settings.hasConfirmedDeleteBefore = true
+                try? modelContext.save()
+            }
             HapticService.deleteSuccess()
             let resultMode = cleanSession?.mode ?? .photo
             cleanSession = nil

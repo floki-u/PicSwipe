@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PicS 首页布局方案</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--brand:#43E97B;--brand2:#38F9D7;--red:#FF453A;--bg:#111;--surface:rgba(255,255,255,0.06);--text:#fff;--text2:#888;--text3:#555}
+body{background:#0a0a0a;color:var(--text);font-family:-apple-system,'PingFang SC',sans-serif;padding:20px;min-height:100vh}
+.header{text-align:center;padding:24px 0 16px}
+.header h1{font-size:24px;font-weight:800;background:linear-gradient(135deg,var(--brand),var(--brand2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header p{color:var(--text2);font-size:13px;margin-top:6px}
+.tabs{display:flex;justify-content:center;gap:8px;margin:16px auto;max-width:600px;flex-wrap:wrap}
+.tab{padding:8px 18px;border-radius:20px;border:1.5px solid var(--text3);color:var(--text2);font-size:13px;cursor:pointer;transition:all .2s;background:transparent;font-weight:500}
+.tab.active{border-color:var(--brand);color:var(--brand);background:rgba(67,233,123,.1)}
+.phones{display:flex;justify-content:center;gap:30px;flex-wrap:wrap;margin:24px auto}
+.phone-col{text-align:center}
+.phone-col .label{font-size:13px;color:var(--text2);margin-bottom:10px;font-weight:500}
+.phone{width:340px;height:740px;background:var(--bg);border-radius:46px;border:3px solid #333;position:relative;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.5)}
+.notch{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:110px;height:30px;background:#000;border-radius:18px;z-index:100}
+.statusbar{position:absolute;top:0;left:0;right:0;height:50px;display:flex;justify-content:space-between;align-items:flex-end;padding:0 22px 5px;font-size:11px;font-weight:600;z-index:90;color:#fff}
+.content{position:absolute;top:50px;left:0;right:0;bottom:0;overflow-y:auto;padding:12px 14px 20px}
+.content::-webkit-scrollbar{display:none}
+/* Shared UI pieces */
+.hero{border-radius:18px;padding:20px;text-align:center;position:relative;overflow:hidden}
+.hero-bg{background:linear-gradient(135deg,rgba(67,233,123,.15),rgba(56,249,215,.08))}
+.hero .emoji{font-size:42px}
+.hero .title{font-size:26px;font-weight:900;color:#fff;margin-top:6px}
+.hero .sub{font-size:12px;color:var(--text2);margin-top:3px}
+.gear{position:absolute;top:10px;right:12px;font-size:16px;color:var(--text2);cursor:pointer;padding:6px}
+.gear:hover{color:#fff}
+.storage{display:flex;align-items:center;gap:10px;padding:7px 14px;background:rgba(255,255,255,.1);border-radius:16px;margin-top:10px}
+.storage-text{font-size:11px;font-weight:600;white-space:nowrap}
+.storage-track{flex:1;height:5px;background:rgba(255,255,255,.15);border-radius:3px}
+.storage-fill{height:100%;width:62%;background:var(--brand);border-radius:3px}
+.cta{margin-top:10px;padding:14px 16px;background:linear-gradient(135deg,var(--brand),var(--brand2));border-radius:16px;display:flex;justify-content:space-between;align-items:center}
+.cta h3{font-size:15px;font-weight:700;color:#000}
+.cta p{font-size:12px;color:rgba(0,0,0,.6);margin-top:2px}
+.cta .arr{font-size:16px;color:rgba(0,0,0,.7)}
+.cards{display:flex;gap:6px;margin-top:10px}
+.card{flex:1;background:var(--surface);border-radius:12px;padding:12px 0;text-align:center}
+.card .em{font-size:18px}
+.card .v{font-size:13px;font-weight:700;color:#fff;margin-top:3px}
+.card .l{font-size:10px;color:var(--text2);margin-top:2px}
+.card.sel{outline:1.5px solid var(--brand)}
+.chips{display:flex;gap:6px;margin-top:10px;overflow-x:auto}
+.chip{display:flex;align-items:center;gap:5px;padding:7px 12px;border-radius:18px;background:var(--surface);font-size:12px;color:#fff;white-space:nowrap;border:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.chip .badge{font-size:10px;color:var(--text2);background:rgba(255,255,255,.1);padding:1px 5px;border-radius:8px}
+.more-link{margin-top:6px;font-size:12px;color:var(--text2)}
+.section-label{font-size:10px;color:var(--text3);font-weight:600;margin-top:10px;margin-bottom:4px}
+/* Top bar style */
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding:0 2px}
+.topbar .greeting{font-size:13px;color:var(--text2)}
+.topbar .right{display:flex;align-items:center;gap:10px}
+.topbar .gear-btn{font-size:18px;color:var(--text2);cursor:pointer}
+/* Compact hero */
+.hero-compact{display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px}
+.hero-compact .icon-box{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--brand),var(--brand2));display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
+.hero-compact .info .title{font-size:20px;font-weight:800;color:#fff;text-align:left}
+.hero-compact .info .sub{font-size:11px;color:var(--text2);text-align:left}
+/* Mockup visibility */
+.mockup{display:none}.mockup.active{display:flex}
+/* Compare */
+.compare{max-width:750px;margin:36px auto}
+.compare h2{font-size:18px;font-weight:700;margin-bottom:14px;text-align:center}
+.compare table{width:100%;border-collapse:collapse;font-size:12px}
+.compare th{text-align:left;padding:8px 10px;color:var(--brand);border-bottom:1px solid var(--text3);font-weight:600}
+.compare td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text2)}
+.compare td:first-child{color:#fff;font-weight:500}
+.star{color:#F4C542}
+.footer{text-align:center;padding:24px;color:var(--text3);font-size:11px}
+@media(max-width:400px){.phone{width:100%;max-width:340px;height:700px;border-radius:38px}body{padding:10px}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>PicS 首页布局方案</h1>
+  <p>三种设置按钮位置 + 整体布局方案对比</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="show(0)">方案A: 顶部导航栏</div>
+  <div class="tab" onclick="show(1)">方案B: 紧凑品牌头</div>
+  <div class="tab" onclick="show(2)">方案C: 沉浸无导航栏</div>
+</div>
+
+<!-- ===== 方案A: 顶部独立导航栏 ===== -->
+<div class="phones mockup active" id="m0">
+  <div class="phone-col">
+    <div class="label">方案A: 顶部导航栏 + 设置按钮右上</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><span>●●● ᯤ 🔋</span></div>
+      <div class="content">
+        <!-- Top bar -->
+        <div class="topbar">
+          <span class="greeting">👋 你好</span>
+          <div class="right">
+            <span class="gear-btn" title="设置">⚙</span>
+          </div>
+        </div>
+        <!-- Hero -->
+        <div class="hero hero-bg">
+          <div class="emoji">🌿</div>
+          <div class="title">PicS</div>
+          <div class="sub">滑一滑，轻松释放空间</div>
+        </div>
+        <!-- Storage -->
+        <div class="storage">
+          <span class="storage-text">39.8 GB / 64 GB</span>
+          <div class="storage-track"><div class="storage-fill"></div></div>
+        </div>
+        <!-- CTA -->
+        <div class="cta">
+          <div><h3>✨ 开始清理</h3><p>随机抽取 20 张照片</p></div>
+          <span class="arr">›</span>
+        </div>
+        <!-- Filter chips -->
+        <div class="section-label">快捷筛选</div>
+        <div class="chips">
+          <div class="chip">📷 截图 <span class="badge">326</span></div>
+          <div class="chip">📦 大文件 <span class="badge">>10MB</span></div>
+        </div>
+        <div class="more-link">更多筛选条件 ›</div>
+        <!-- Data cards -->
+        <div class="cards">
+          <div class="card sel"><div class="em">📷</div><div class="v">3,847</div><div class="l">照片</div></div>
+          <div class="card"><div class="em">🎬</div><div class="v">126</div><div class="l">视频</div></div>
+          <div class="card"><div class="em">🧹</div><div class="v">37 MB</div><div class="l">已释放</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 方案B: 紧凑品牌头 ===== -->
+<div class="phones mockup" id="m1">
+  <div class="phone-col">
+    <div class="label">方案B: 紧凑品牌头 + 设置在品牌行右侧</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><span>●●● ᯤ 🔋</span></div>
+      <div class="content">
+        <!-- Compact hero with gear inline -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,var(--brand),var(--brand2));display:flex;align-items:center;justify-content:center;font-size:22px">🌿</div>
+            <div>
+              <div style="font-size:20px;font-weight:800;color:#fff">PicS</div>
+              <div style="font-size:11px;color:var(--text2)">滑一滑，轻松释放空间</div>
+            </div>
+          </div>
+          <span class="gear-btn" style="font-size:20px" title="设置">⚙</span>
+        </div>
+        <!-- Storage -->
+        <div class="storage">
+          <span class="storage-text">39.8 GB / 64 GB</span>
+          <div class="storage-track"><div class="storage-fill"></div></div>
+        </div>
+        <!-- CTA -->
+        <div class="cta">
+          <div><h3>✨ 开始清理</h3><p>随机抽取 20 张照片</p></div>
+          <span class="arr">›</span>
+        </div>
+        <!-- Filter chips -->
+        <div class="section-label">快捷筛选</div>
+        <div class="chips">
+          <div class="chip">📷 截图 <span class="badge">326</span></div>
+          <div class="chip">📦 大文件 <span class="badge">>10MB</span></div>
+        </div>
+        <div class="more-link">更多筛选条件 ›</div>
+        <!-- Data cards -->
+        <div class="cards">
+          <div class="card sel"><div class="em">📷</div><div class="v">3,847</div><div class="l">照片</div></div>
+          <div class="card"><div class="em">🎬</div><div class="v">126</div><div class="l">视频</div></div>
+          <div class="card"><div class="em">🧹</div><div class="v">37 MB</div><div class="l">已释放</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 方案C: 沉浸式无导航栏 ===== -->
+<div class="phones mockup" id="m2">
+  <div class="phone-col">
+    <div class="label">方案C: 保持大英雄区 + 设置集成到数据卡片行</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><span>●●● ᯤ 🔋</span></div>
+      <div class="content">
+        <!-- Hero (clean, no gear) -->
+        <div class="hero hero-bg">
+          <div class="emoji">🌿</div>
+          <div class="title">PicS</div>
+          <div class="sub">滑一滑，轻松释放空间</div>
+        </div>
+        <!-- Storage -->
+        <div class="storage">
+          <span class="storage-text">39.8 GB / 64 GB</span>
+          <div class="storage-track"><div class="storage-fill"></div></div>
+        </div>
+        <!-- CTA -->
+        <div class="cta">
+          <div><h3>✨ 开始清理</h3><p>随机抽取 20 张照片</p></div>
+          <span class="arr">›</span>
+        </div>
+        <!-- Filter chips -->
+        <div class="section-label">快捷筛选</div>
+        <div class="chips">
+          <div class="chip">📷 截图 <span class="badge">326</span></div>
+          <div class="chip">📦 大文件 <span class="badge">>10MB</span></div>
+        </div>
+        <div class="more-link">更多筛选条件 ›</div>
+        <!-- Data cards row: 3 cards + gear as 4th card -->
+        <div class="cards" style="margin-top:10px">
+          <div class="card sel"><div class="em">📷</div><div class="v">3,847</div><div class="l">照片</div></div>
+          <div class="card"><div class="em">🎬</div><div class="v">126</div><div class="l">视频</div></div>
+          <div class="card"><div class="em">🧹</div><div class="v">37 MB</div><div class="l">已释放</div></div>
+          <div class="card" style="flex:0.6;cursor:pointer"><div class="em">⚙</div><div class="v" style="font-size:11px;color:var(--text2)">设置</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Compare -->
+<div class="compare">
+  <h2>方案对比</h2>
+  <table>
+    <thead><tr><th></th><th>方案A 顶部导航栏</th><th>方案B 紧凑品牌头</th><th>方案C 设置卡片</th></tr></thead>
+    <tbody>
+      <tr><td>设置入口位置</td><td>页面右上角独立栏</td><td>品牌行右侧（同一行）</td><td>数据卡片行第 4 个</td></tr>
+      <tr><td>品牌展示</td><td>大英雄区保留</td><td>缩小为单行 icon+文字</td><td>大英雄区保留（干净）</td></tr>
+      <tr><td>空间效率</td><td>多一行导航栏</td><td>最省空间</td><td>无额外空间</td></tr>
+      <tr><td>设置可见性</td><td>⭐⭐⭐⭐⭐ 最明显</td><td>⭐⭐⭐⭐ 自然</td><td>⭐⭐⭐ 需要注意到卡片</td></tr>
+      <tr><td>视觉平衡</td><td>传统但稳</td><td>紧凑现代</td><td>英雄区最干净</td></tr>
+      <tr><td>类似 App</td><td>系统设置、微信</td><td>支付宝、美团</td><td>Apple Music、播客</td></tr>
+      <tr><td>推荐</td><td><span class="star">⭐⭐⭐</span></td><td><span class="star">⭐⭐⭐⭐⭐</span></td><td><span class="star">⭐⭐⭐⭐</span></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="footer">PicS 首页布局方案 · 点击标签切换查看</div>
+
+<script>
+function show(i){
+  document.querySelectorAll('.mockup').forEach((m,j)=>m.classList.toggle('active',j===i));
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+}
+</script>
+</body>
+</html>
