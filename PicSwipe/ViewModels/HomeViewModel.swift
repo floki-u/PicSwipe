@@ -17,14 +17,13 @@ final class HomeViewModel {
     var batchSize: Int = 20
     var isLoading: Bool = false
 
+    // MARK: - 快捷筛选计数
+
+    var screenshotCount: Int = 0
+    var largeFileCount: Int = 0
+
     // MARK: - 数据加载
 
-    /// 从各 Service 聚合首页所需数据
-    /// - Parameters:
-    ///   - photoService: 相册服务
-    ///   - storageService: 存储服务
-    ///   - statsService: 统计服务
-    ///   - modelContext: SwiftData 上下文
     @MainActor
     func loadData(
         photoService: PhotoLibraryService,
@@ -39,6 +38,11 @@ final class HomeViewModel {
         totalDeletedCount = statsService.totalDeletedCount(in: modelContext)
         totalFreedSpace = statsService.totalFreedSpace(in: modelContext)
         batchSize = statsService.getSettings(in: modelContext).batchSize
+
+        // 异步加载快捷筛选计数
+        screenshotCount = await photoService.fetchScreenshotCount()
+        largeFileCount = await photoService.fetchLargeFileCount()
+
         isLoading = false
     }
 }

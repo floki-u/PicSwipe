@@ -9,6 +9,7 @@ struct SwipeView: View {
     @Binding var path: NavigationPath
     @Binding var cleanSession: CleanSession?
     let mode: CleanMode
+    var filter: FilterCriteria? = nil
 
     @Environment(PhotoLibraryService.self) private var photoService
     @Environment(StatisticsService.self) private var statsService
@@ -21,6 +22,8 @@ struct SwipeView: View {
     /// 防止触觉反馈在每帧重复触发
     @State private var hasTriggeredHaptic = false
 
+    @State private var isDirectDeleting = false
+
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -32,6 +35,20 @@ struct SwipeView: View {
                     emptyView
                 } else {
                     swipeContent(screenSize: geometry.size)
+                }
+
+                // 直接删除时的加载遮罩
+                if isDirectDeleting {
+                    Color.black.opacity(0.5)
+                        .ignoresSafeArea()
+                    VStack(spacing: Spacing.md) {
+                        ProgressView()
+                            .tint(Color.brandPrimary)
+                            .scaleEffect(1.5)
+                        Text("正在删除…")
+                            .foregroundStyle(Color.textSecondary)
+                            .font(.subheadline)
+                    }
                 }
             }
         }
@@ -46,7 +63,7 @@ struct SwipeView: View {
         .onChange(of: vm.isFinished) { _, finished in
             if finished {
                 cleanSession = vm.session
-                path.append(AppDestination.confirmDelete)
+                handleSwipeFinished()
             }
         }
     }
@@ -58,10 +75,19 @@ struct SwipeView: View {
             ProgressView()
                 .tint(Color.brandPrimary)
                 .scaleEffect(1.5)
-            Text("正在加载\(mode == .photo ? "照片" : "视频")…")
+            Text(loadingText)
                 .foregroundStyle(Color.textSecondary)
                 .font(.subheadline)
         }
+    }
+
+    private var loadingText: String {
+        if let f = filter {
+            if f.screenshotsOnly { return "正在筛选截图…" }
+            if f.largeFilesOnly { return "正在筛选大文件…" }
+            if f.hasActiveFilter { return "正在筛选\(mode == .photo ? "照片" : "视频")…" }
+        }
+        return "正在加载\(mode == .photo ? "照片" : "视频")…"
     }
 
     // MARK: - 空状态
@@ -457,11 +483,54 @@ struct SwipeView: View {
         }
     }
 
+    // MARK: - 完成处理
+
+    /// 滑动完成后的处理：首次走确认删除页，之后直接执行删除
+    private func handleSwipeFinished() {
+        let settings = statsService.getSettings(in: modelContext)
+        let markedAssets = vm.session?.markedAssets ?? []
+
+        if markedAssets.isEmpty {
+            // 没有标记删除的 → 走确认页（显示"全部保留"状态）
+            path.append(AppDestination.confirmDelete)
+        } else if !settings.hasConfirmedDeleteBefore {
+            // 首次删除 → 走确认页让用户了解流程
+            path.append(AppDestination.confirmDelete)
+        } else {
+            // 非首次 → 直接执行删除（仅系统弹窗）
+            Task { await performDirectDelete(markedAssets: markedAssets) }
+        }
+    }
+
+    /// 跳过确认页，直接调用系统删除
+    private func performDirectDelete(markedAssets: [AssetItem]) async {
+        isDirectDeleting = true
+        do {
+            let deletedCount = try await photoService.deleteAssets(markedAssets)
+            let freedSpace = markedAssets.reduce(Int64(0)) { $0 + $1.fileSize }
+            statsService.recordClean(
+                deletedCount: deletedCount,
+                freedSpace: freedSpace,
+                mode: mode,
+                in: modelContext
+            )
+            HapticService.deleteSuccess()
+            cleanSession = nil
+            isDirectDeleting = false
+            path.append(AppDestination.result(deletedCount: deletedCount, freedSpace: freedSpace, mode: mode))
+        } catch {
+            HapticService.deleteError()
+            isDirectDeleting = false
+            // 用户拒绝系统弹窗 → 回退到确认页让用户重新选择
+            path.append(AppDestination.confirmDelete)
+        }
+    }
+
     // MARK: - 加载会话
 
     private func loadSession() async {
         let batchSize = statsService.getSettings(in: modelContext).batchSize
-        let session = await photoService.fetchRandomAssets(mode: mode, count: batchSize)
+        let session = await photoService.fetchRandomAssets(mode: mode, count: batchSize, filter: filter)
         if session.assets.isEmpty {
             isEmpty = true
         } else {

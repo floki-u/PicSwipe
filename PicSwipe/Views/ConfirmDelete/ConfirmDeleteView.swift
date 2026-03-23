@@ -486,6 +486,12 @@ struct ConfirmDeleteView: View {
                 mode: cleanSession?.mode ?? .photo,
                 in: modelContext
             )
+            // 标记用户已完成过一次删除，后续跳过确认页
+            let settings = statsService.getSettings(in: modelContext)
+            if !settings.hasConfirmedDeleteBefore {
+                settings.hasConfirmedDeleteBefore = true
+                try? modelContext.save()
+            }
             HapticService.deleteSuccess()
             let resultMode = cleanSession?.mode ?? .photo
             cleanSession = nil

@@ -25,8 +25,8 @@ struct HomeView: View {
                     limitedAccessBanner
                     storageCapsule
                     startCleaningCard
+                    quickFilterSection
                     dataCardRow
-                    bottomActions
                 }
                 .padding(.horizontal, Spacing.pagePadding)
                 .padding(.top, Spacing.lg)
@@ -47,7 +47,7 @@ struct HomeView: View {
     // MARK: - 品牌英雄区
 
     private var heroSection: some View {
-        ZStack(alignment: .topTrailing) {
+        ZStack {
             // 背景渐变
             LinearGradient(
                 colors: [
@@ -223,6 +223,13 @@ struct HomeView: View {
                 label: "已释放",
                 value: formatFileSize(vm.totalFreedSpace)
             )
+            // 设置入口卡片
+            Button {
+                path.append(AppDestination.settings)
+            } label: {
+                dataCardContent(emoji: "⚙", label: "设置", value: "")
+            }
+            .buttonStyle(.plain)
         }
     }
 
@@ -269,32 +276,81 @@ struct HomeView: View {
         .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 
-    // MARK: - 底部操作区
+    // MARK: - 快捷筛选区
 
-    private var bottomActions: some View {
-        HStack {
-            // 筛选后清理（V1.1 占位）
-            Button {
-                // V1.1 预留
-            } label: {
-                Text("筛选后清理 →")
-                    .font(.subheadline)
-                    .foregroundStyle(Color.textMuted)
+    private var quickFilterSection: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            Text("快捷筛选")
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundStyle(Color.textMuted)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: Spacing.sm) {
+                    // 截图标签
+                    if vm.screenshotCount > 0 {
+                        quickFilterChip(
+                            emoji: "📷",
+                            label: "截图",
+                            badge: "\(vm.screenshotCount)"
+                        ) {
+                            var filter = FilterCriteria()
+                            filter.screenshotsOnly = true
+                            path.append(AppDestination.swipeWithFilter(.photo, filter))
+                        }
+                    }
+
+                    // 大文件标签
+                    if vm.largeFileCount > 0 {
+                        quickFilterChip(
+                            emoji: "📦",
+                            label: "大文件",
+                            badge: ">10MB"
+                        ) {
+                            var filter = FilterCriteria()
+                            filter.largeFilesOnly = true
+                            filter.sortBySize = true
+                            path.append(AppDestination.swipeWithFilter(vm.selectedMode, filter))
+                        }
+                    }
+                }
             }
-            .disabled(true)
 
-            Spacer()
-
-            // 设置入口
+            // 更多筛选条件链接
             Button {
-                path.append(AppDestination.settings)
+                path.append(AppDestination.filter(vm.selectedMode))
             } label: {
-                Image(systemName: "gearshape.fill")
-                    .font(.title3)
+                Text("更多筛选条件 ›")
+                    .font(.subheadline)
                     .foregroundStyle(Color.textSecondary)
             }
         }
-        .padding(.horizontal, Spacing.xs)
-        .padding(.top, Spacing.xs)
+    }
+
+    private func quickFilterChip(emoji: String, label: String, badge: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Text(emoji)
+                    .font(.subheadline)
+                Text(label)
+                    .font(.subheadline)
+                    .foregroundStyle(.white)
+                Text(badge)
+                    .font(.caption)
+                    .foregroundStyle(Color.textSecondary)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.white.opacity(0.1))
+                    .clipShape(Capsule())
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(Color.surfaceBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color.white.opacity(0.08), lineWidth: 1)
+            )
+        }
     }
 }

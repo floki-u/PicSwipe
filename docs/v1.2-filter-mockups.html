@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PicS V1.2 — 筛选功能设计方案</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --brand: #43E97B; --brand2: #38F9D7; --red: #FF453A; --yellow: #F4C542;
+    --bg: #111111; --surface: rgba(255,255,255,0.06); --surface2: rgba(255,255,255,0.1);
+    --text: #ffffff; --text2: #888888; --text3: #555555;
+    --radius: 16px; --chip-radius: 20px;
+  }
+  body { background: #0a0a0a; color: var(--text); font-family: -apple-system, 'SF Pro Display', 'PingFang SC', sans-serif; padding: 20px; min-height: 100vh; }
+
+  /* Page Header */
+  .page-header { text-align: center; padding: 30px 0 20px; }
+  .page-header h1 { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, var(--brand), var(--brand2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .page-header p { color: var(--text2); font-size: 14px; margin-top: 8px; }
+
+  /* Tabs */
+  .tabs { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 20px auto; max-width: 700px; }
+  .tab { padding: 8px 16px; border-radius: var(--chip-radius); border: 1.5px solid var(--text3); color: var(--text2); font-size: 13px; cursor: pointer; transition: all 0.2s; background: transparent; font-weight: 500; }
+  .tab:hover { border-color: var(--text2); color: var(--text); }
+  .tab.active { border-color: var(--brand); color: var(--brand); background: rgba(67,233,123,0.1); }
+
+  /* Phone Frame */
+  .phone-wrapper { display: flex; justify-content: center; margin: 30px auto; }
+  .phone { width: 375px; height: 812px; background: var(--bg); border-radius: 50px; border: 3px solid #333; position: relative; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  .dynamic-island { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 120px; height: 34px; background: #000; border-radius: 20px; z-index: 100; }
+  .status-bar { position: absolute; top: 0; left: 0; right: 0; height: 54px; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 24px 6px; font-size: 12px; font-weight: 600; z-index: 90; color: white; }
+  .phone-content { position: absolute; top: 54px; left: 0; right: 0; bottom: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+  .phone-content::-webkit-scrollbar { display: none; }
+
+  /* Shared Components */
+  .section-pad { padding: 0 16px; }
+  .hero { background: linear-gradient(135deg, rgba(67,233,123,0.15), rgba(56,249,215,0.08)); border-radius: 22px; padding: 24px; text-align: center; margin: 16px; }
+  .hero-emoji { font-size: 48px; }
+  .hero-title { font-size: 28px; font-weight: 900; color: white; margin-top: 8px; font-family: -apple-system, 'SF Pro Rounded', sans-serif; }
+  .hero-sub { font-size: 13px; color: var(--text2); margin-top: 4px; }
+
+  .storage-bar { display: flex; align-items: center; gap: 12px; margin: 0 16px 12px; padding: 8px 16px; background: var(--surface2); border-radius: 20px; }
+  .storage-text { font-size: 12px; font-weight: 600; white-space: nowrap; }
+  .storage-track { flex: 1; height: 6px; background: rgba(255,255,255,0.15); border-radius: 3px; }
+  .storage-fill { height: 100%; width: 62%; background: var(--brand); border-radius: 3px; }
+
+  .start-card { margin: 0 16px 12px; padding: 16px 20px; background: linear-gradient(135deg, var(--brand), var(--brand2)); border-radius: 18px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+  .start-card h3 { font-size: 17px; font-weight: 700; color: #000; }
+  .start-card p { font-size: 13px; color: rgba(0,0,0,0.6); margin-top: 2px; }
+  .start-card .arrow { font-size: 18px; color: rgba(0,0,0,0.7); }
+
+  .data-cards { display: flex; gap: 8px; margin: 0 16px 12px; }
+  .data-card { flex: 1; background: var(--surface); border-radius: 14px; padding: 14px 0; text-align: center; }
+  .data-card .emoji { font-size: 22px; }
+  .data-card .val { font-size: 14px; font-weight: 700; color: white; margin-top: 4px; }
+  .data-card .label { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+  .bottom-row { display: flex; justify-content: space-between; align-items: center; margin: 0 20px; padding-top: 4px; }
+  .bottom-link { font-size: 13px; color: var(--text3); }
+  .gear-icon { font-size: 20px; color: var(--text2); }
+
+  /* Filter Chips */
+  .chips-row { display: flex; gap: 8px; padding: 0 16px 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .chips-row::-webkit-scrollbar { display: none; }
+  .chip { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: var(--chip-radius); border: 1.5px solid var(--text3); font-size: 13px; color: var(--text2); white-space: nowrap; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
+  .chip:hover { border-color: var(--text2); }
+  .chip.selected { border-color: var(--brand); color: var(--brand); background: rgba(67,233,123,0.1); }
+  .chip .badge { font-size: 11px; background: var(--surface2); padding: 2px 6px; border-radius: 10px; color: var(--text2); }
+  .chip.selected .badge { background: rgba(67,233,123,0.2); color: var(--brand); }
+
+  /* Filter Action Button (appears when chip selected) */
+  .filter-action { margin: 0 16px 12px; padding: 12px; background: linear-gradient(135deg, var(--brand), var(--brand2)); border-radius: 14px; text-align: center; font-size: 15px; font-weight: 700; color: #000; cursor: pointer; display: none; animation: slideUp 0.2s ease; }
+  .filter-action.show { display: block; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* More filter link */
+  .more-filter { text-align: center; padding: 4px 0 12px; font-size: 13px; color: var(--text2); cursor: pointer; }
+  .more-filter:hover { color: var(--brand); }
+
+  /* ===== Filter Page Styles ===== */
+  .filter-nav { display: flex; align-items: center; padding: 12px 16px 8px; }
+  .filter-back { font-size: 15px; color: white; cursor: pointer; }
+  .filter-title { flex: 1; text-align: center; font-size: 17px; font-weight: 600; margin-right: 30px; }
+
+  .filter-card { background: var(--surface); border-radius: var(--radius); margin: 8px 16px; padding: 16px; }
+  .filter-card-title { font-size: 14px; font-weight: 600; color: var(--text2); margin-bottom: 12px; }
+
+  .filter-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
+  .filter-row + .filter-row { border-top: 1px solid rgba(255,255,255,0.06); }
+  .filter-row-label { font-size: 15px; color: white; }
+  .filter-row-sub { font-size: 12px; color: var(--text2); }
+
+  /* Toggle Switch */
+  .toggle { width: 46px; height: 28px; border-radius: 14px; background: var(--text3); position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
+  .toggle.on { background: var(--brand); }
+  .toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: white; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  .toggle.on::after { transform: translateX(18px); }
+
+  /* Time Range Buttons */
+  .time-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .time-btn { padding: 8px 14px; border-radius: 12px; border: 1.5px solid var(--text3); font-size: 13px; color: var(--text2); cursor: pointer; transition: all 0.2s; background: transparent; }
+  .time-btn.active { border-color: var(--brand); color: var(--brand); background: rgba(67,233,123,0.1); }
+
+  /* Album List */
+  .album-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+  .album-item + .album-item { border-top: 1px solid rgba(255,255,255,0.06); }
+  .album-check { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--text3); display: flex; align-items: center; justify-content: center; font-size: 13px; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
+  .album-check.checked { background: var(--brand); border-color: var(--brand); color: #000; }
+  .album-name { flex: 1; font-size: 15px; color: white; }
+  .album-count { font-size: 13px; color: var(--text2); }
+
+  /* Sticky Bottom */
+  .sticky-bottom { position: sticky; bottom: 0; background: linear-gradient(transparent, var(--bg) 20%); padding: 20px 16px 30px; }
+  .match-count { text-align: center; font-size: 13px; color: var(--text2); margin-bottom: 10px; }
+  .match-count span { color: var(--brand); font-weight: 700; }
+  .start-btn { width: 100%; padding: 14px; border-radius: 14px; background: linear-gradient(135deg, var(--brand), var(--brand2)); font-size: 16px; font-weight: 700; color: #000; text-align: center; cursor: pointer; border: none; }
+
+  /* Compact List Style (Tab 4) */
+  .compact-section { padding: 8px 16px; }
+  .compact-header { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; padding: 16px 0 6px; }
+  .compact-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--surface); margin-bottom: 1px; }
+  .compact-row:first-of-type { border-radius: 12px 12px 0 0; }
+  .compact-row:last-of-type { border-radius: 0 0 12px 12px; margin-bottom: 0; }
+  .compact-row:only-of-type { border-radius: 12px; }
+
+  /* Segmented Control */
+  .segmented { display: flex; background: var(--surface); border-radius: 10px; padding: 3px; margin: 0 16px; }
+  .seg-btn { flex: 1; padding: 8px 4px; text-align: center; font-size: 12px; color: var(--text2); border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+  .seg-btn.active { background: var(--surface2); color: white; font-weight: 600; }
+
+  /* Mockup container */
+  .mockup { display: none; }
+  .mockup.active { display: block; }
+
+  /* Comparison Table */
+  .compare { max-width: 800px; margin: 40px auto; }
+  .compare h2 { font-size: 20px; font-weight: 700; margin-bottom: 16px; text-align: center; }
+  .compare table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .compare th { text-align: left; padding: 10px 12px; color: var(--brand); border-bottom: 1px solid var(--text3); font-weight: 600; }
+  .compare td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.06); color: var(--text2); }
+  .compare td:first-child { color: white; font-weight: 500; }
+  .compare .star { color: var(--yellow); }
+
+  /* Responsive */
+  @media (max-width: 420px) {
+    .phone { width: 100%; max-width: 375px; height: 750px; border-radius: 40px; }
+    body { padding: 10px; }
+    .tabs { gap: 6px; }
+    .tab { font-size: 12px; padding: 6px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>PicS V1.2 — 筛选功能设计方案</h1>
+  <p>点击不同方案标签查看交互原型，可点击界面元素体验交互</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab(0)">方案A: 快捷标签</div>
+  <div class="tab" onclick="showTab(1)">方案B: 独立筛选页</div>
+  <div class="tab" onclick="showTab(2)">方案C: 两者结合</div>
+  <div class="tab" onclick="showTab(3)">筛选页样式1: 紧凑列表</div>
+  <div class="tab" onclick="showTab(4)">筛选页样式2: 卡片分组</div>
+</div>
+
+<div class="phone-wrapper">
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span>9:41</span>
+      <span>●●● ᯤ 🔋</span>
+    </div>
+
+    <!-- ===== Tab 0: 方案A 快捷标签 ===== -->
+    <div class="phone-content mockup active" id="mockup0">
+      <div class="hero">
+        <div class="hero-emoji">🌿</div>
+        <div class="hero-title">PicS</div>
+        <div class="hero-sub">滑一滑，轻松释放空间</div>
+      </div>
+      <div class="storage-bar">
+        <span class="storage-text">39.8 GB / 64 GB</span>
+        <div class="storage-track"><div class="storage-fill"></div></div>
+      </div>
+      <div class="start-card">
+        <div>
+          <h3>✨ 开始清理</h3>
+          <p>随机抽取 20 张照片</p>
+        </div>
+        <span class="arrow">›</span>
+      </div>
+
+      <!-- NEW: Filter Chips -->
+      <div style="padding: 0 16px 6px; font-size: 12px; color: var(--text3); font-weight: 500;">快捷筛选</div>
+      <div class="chips-row" id="chipsA">
+        <div class="chip" onclick="toggleChipA(this, '截图')">📷 截图 <span class="badge">326</span></div>
+        <div class="chip" onclick="toggleChipA(this, '大文件')">📦 大文件 <span class="badge">&gt;10MB</span></div>
+        <div class="chip" onclick="toggleChipA(this, '1年前')">📅 1年前</div>
+        <div class="chip" onclick="toggleChipA(this, '2年前')">📅 2年前</div>
+        <div class="chip" onclick="toggleChipA(this, '按相册')">📁 按相册</div>
+      </div>
+      <div class="filter-action" id="filterActionA">开始清理 截图</div>
+
+      <div class="data-cards">
+        <div class="data-card"><div class="emoji">📷</div><div class="val">3,847</div><div class="label">照片</div></div>
+        <div class="data-card"><div class="emoji">🎬</div><div class="val">126</div><div class="label">视频</div></div>
+        <div class="data-card"><div class="emoji">🧹</div><div class="val">37 MB</div><div class="label">已释放</div></div>
+      </div>
+      <div class="bottom-row">
+        <span class="bottom-link">筛选后清理 →</span>
+        <span class="gear-icon">⚙</span>
+      </div>
+    </div>
+
+    <!-- ===== Tab 1: 方案B 独立筛选页 ===== -->
+    <div class="phone-content mockup" id="mockup1">
+      <div class="filter-nav">
+        <span class="filter-back">‹ 返回</span>
+        <span class="filter-title">筛选清理</span>
+      </div>
+
+      <div class="filter-card">
+        <div class="filter-card-title">快捷筛选</div>
+        <div class="filter-row">
+          <div>
+            <div class="filter-row-label">📷 仅截图</div>
+            <div class="filter-row-sub">筛选所有屏幕截图</div>
+          </div>
+          <div class="toggle" onclick="this.classList.toggle('on'); updateCountB()"></div>
+        </div>
+        <div class="filter-row">
+          <div>
+            <div class="filter-row-label">📦 大文件优先</div>
+            <div class="filter-row-sub">优先展示 &gt;10MB 的文件</div>
+          </div>
+          <div class="toggle" onclick="this.classList.toggle('on'); updateCountB()"></div>
+        </div>
+      </div>
+
+      <div class="filter-card">
+        <div class="filter-card-title">时间范围</div>
+        <div class="time-btns" id="timeBtnsB">
+          <div class="time-btn active" onclick="selectTime(this, 'B')">全部</div>
+          <div class="time-btn" onclick="selectTime(this, 'B')">1年前</div>
+          <div class="time-btn" onclick="selectTime(this, 'B')">2年前</div>
+          <div class="time-btn" onclick="selectTime(this, 'B')">3年前</div>
+          <div class="time-btn" onclick="selectTime(this, 'B')">自定义</div>
+        </div>
+      </div>
+
+      <div class="filter-card">
+        <div class="filter-card-title">相册选择</div>
+        <div class="album-item" onclick="toggleAlbum(this)">
+          <div class="album-check checked">✓</div>
+          <span class="album-name">相机胶卷</span>
+          <span class="album-count">3,847</span>
+        </div>
+        <div class="album-item" onclick="toggleAlbum(this)">
+          <div class="album-check">✓</div>
+          <span class="album-name">截屏</span>
+          <span class="album-count">326</span>
+        </div>
+        <div class="album-item" onclick="toggleAlbum(this)">
+          <div class="album-check">✓</div>
+          <span class="album-name">最近项目</span>
+          <span class="album-count">1,204</span>
+        </div>
+        <div class="album-item" onclick="toggleAlbum(this)">
+          <div class="album-check">✓</div>
+          <span class="album-name">微信</span>
+          <span class="album-count">89</span>
+        </div>
+      </div>
+
+      <div style="height: 120px;"></div>
+      <div class="sticky-bottom">
+        <div class="match-count">符合条件 <span id="countB">3,847</span> 张照片</div>
+        <div class="start-btn">开始清理</div>
+      </div>
+    </div>
+
+    <!-- ===== Tab 2: 方案C 两者结合 ===== -->
+    <div class="phone-content mockup" id="mockup2">
+      <div class="hero">
+        <div class="hero-emoji">🌿</div>
+        <div class="hero-title">PicS</div>
+        <div class="hero-sub">滑一滑，轻松释放空间</div>
+      </div>
+      <div class="storage-bar">
+        <span class="storage-text">39.8 GB / 64 GB</span>
+        <div class="storage-track"><div class="storage-fill"></div></div>
+      </div>
+      <div class="start-card">
+        <div>
+          <h3>✨ 开始清理</h3>
+          <p>随机抽取 20 张照片</p>
+        </div>
+        <span class="arrow">›</span>
+      </div>
+
+      <!-- Quick chips (fewer) -->
+      <div style="padding: 0 16px 6px; font-size: 12px; color: var(--text3); font-weight: 500;">快捷筛选</div>
+      <div class="chips-row" id="chipsC">
+        <div class="chip" onclick="toggleChipC(this, '截图')">📷 截图 <span class="badge">326</span></div>
+        <div class="chip" onclick="toggleChipC(this, '大文件')">📦 大文件 <span class="badge">&gt;10MB</span></div>
+      </div>
+      <div class="filter-action" id="filterActionC">开始清理 截图</div>
+      <div class="more-filter" onclick="showTab(1)">更多筛选条件 ›</div>
+
+      <div class="data-cards">
+        <div class="data-card"><div class="emoji">📷</div><div class="val">3,847</div><div class="label">照片</div></div>
+        <div class="data-card"><div class="emoji">🎬</div><div class="val">126</div><div class="label">视频</div></div>
+        <div class="data-card"><div class="emoji">🧹</div><div class="val">37 MB</div><div class="label">已释放</div></div>
+      </div>
+      <div class="bottom-row">
+        <span></span>
+        <span class="gear-icon">⚙</span>
+      </div>
+    </div>
+
+    <!-- ===== Tab 3: 筛选页样式1 紧凑列表 ===== -->
+    <div class="phone-content mockup" id="mockup3">
+      <div class="filter-nav">
+        <span class="filter-back">‹ 返回</span>
+        <span class="filter-title">筛选清理</span>
+      </div>
+
+      <div class="compact-section">
+        <div class="compact-header">快捷筛选</div>
+        <div class="compact-row" style="border-radius: 12px 12px 0 0;">
+          <span style="font-size: 15px;">📷 仅截图</span>
+          <div class="toggle" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="compact-row" style="border-radius: 0 0 12px 12px;">
+          <span style="font-size: 15px;">📦 大文件优先</span>
+          <div class="toggle" onclick="this.classList.toggle('on')"></div>
+        </div>
+
+        <div class="compact-header">时间范围</div>
+      </div>
+      <div class="segmented" id="segmented3">
+        <div class="seg-btn active" onclick="selectSeg(this)">全部</div>
+        <div class="seg-btn" onclick="selectSeg(this)">1年前</div>
+        <div class="seg-btn" onclick="selectSeg(this)">2年前</div>
+        <div class="seg-btn" onclick="selectSeg(this)">3年前</div>
+      </div>
+
+      <div class="compact-section">
+        <div class="compact-header">相册</div>
+        <div class="compact-row" style="border-radius: 12px 12px 0 0;" onclick="toggleAlbum(this)">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="album-check checked" style="width:20px;height:20px;">✓</div>
+            <span style="font-size:15px;">相机胶卷</span>
+          </div>
+          <span style="font-size:13px; color:var(--text2);">3,847</span>
+        </div>
+        <div class="compact-row" onclick="toggleAlbum(this)">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="album-check" style="width:20px;height:20px;">✓</div>
+            <span style="font-size:15px;">截屏</span>
+          </div>
+          <span style="font-size:13px; color:var(--text2);">326</span>
+        </div>
+        <div class="compact-row" onclick="toggleAlbum(this)">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="album-check" style="width:20px;height:20px;">✓</div>
+            <span style="font-size:15px;">最近项目</span>
+          </div>
+          <span style="font-size:13px; color:var(--text2);">1,204</span>
+        </div>
+        <div class="compact-row" style="border-radius: 0 0 12px 12px;" onclick="toggleAlbum(this)">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="album-check" style="width:20px;height:20px;">✓</div>
+            <span style="font-size:15px;">微信</span>
+          </div>
+          <span style="font-size:13px; color:var(--text2);">89</span>
+        </div>
+      </div>
+
+      <div style="height: 120px;"></div>
+      <div class="sticky-bottom">
+        <div class="match-count">符合条件 <span>3,847</span> 张照片</div>
+        <div class="start-btn">开始清理</div>
+      </div>
+    </div>
+
+    <!-- ===== Tab 4: 筛选页样式2 卡片分组 ===== -->
+    <div class="phone-content mockup" id="mockup4">
+      <div class="filter-nav">
+        <span class="filter-back">‹ 返回</span>
+        <span class="filter-title">筛选清理</span>
+      </div>
+
+      <div class="filter-card">
+        <div class="filter-card-title">📷 快捷筛选</div>
+        <div class="filter-row">
+          <div>
+            <div class="filter-row-label">仅截图</div>
+            <div class="filter-row-sub">筛选 326 张屏幕截图</div>
+          </div>
+          <div class="toggle" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="filter-row">
+          <div>
+            <div class="filter-row-label">大文件优先</div>
+            <div class="filter-row-sub">优先展示 &gt;10MB 的文件</div>
+          </div>
+          <div class="toggle" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+
+      <div class="filter-card">
+        <div class="filter-card-title">📅 时间范围</div>
+        <div class="time-btns" id="timeBtns4">
+          <div class="time-btn active" onclick="selectTime(this, '4')">全部</div>
+          <div class="time-btn" onclick="selectTime(this, '4')">1年前</div>
+          <div class="time-btn" onclick="selectTime(this, '4')">2年前</div>
+          <div class="time-btn" onclick="selectTime(this, '4')">3年前</div>
+          <div class="time-btn" onclick="selectTime(this, '4')">自定义</div>
+        </div>
+      </div>
+
+      <div class="filter-card">
+        <div class="filter-card-title">📁 相册选择</div>
+        <div class="album-item" onclick="toggleAlbum(this)">
+          <div class="album-check checked">✓</div>
+          <span class="album-name">相机胶卷</span>
+          <span class="album-count">3,847</span>
+        </div>
+        <div class="album-item" onclick="toggleAlbum(this)">
+          <div class="album-check">✓</div>
+          <span class="album-name">截屏</span>
+          <span class="album-count">326</span>
+        </div>
+        <div class="album-item" onclick="toggleAlbum(this)">
+          <div class="album-check">✓</div>
+          <span class="album-name">最近项目</span>
+          <span class="album-count">1,204</span>
+        </div>
+        <div class="album-item" onclick="toggleAlbum(this)">
+          <div class="album-check">✓</div>
+          <span class="album-name">微信</span>
+          <span class="album-count">89</span>
+        </div>
+        <div class="album-item" onclick="toggleAlbum(this)">
+          <div class="album-check">✓</div>
+          <span class="album-name">下载</span>
+          <span class="album-count">42</span>
+        </div>
+      </div>
+
+      <div style="height: 120px;"></div>
+      <div class="sticky-bottom">
+        <div class="match-count">符合条件 <span>3,847</span> 张照片</div>
+        <div class="start-btn">开始清理</div>
+      </div>
+    </div>
+
+  </div><!-- /phone -->
+</div><!-- /phone-wrapper -->
+
+<!-- Comparison Table -->
+<div class="compare">
+  <h2>方案对比</h2>
+  <table>
+    <thead>
+      <tr>
+        <th></th>
+        <th>方案A 快捷标签</th>
+        <th>方案B 独立筛选页</th>
+        <th>方案C 两者结合</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>操作步数</td>
+        <td>1 步（点击标签直接清理）</td>
+        <td>2 步（进入筛选页→设置→清理）</td>
+        <td>1~2 步（常用1步，高级2步）</td>
+      </tr>
+      <tr>
+        <td>适合场景</td>
+        <td>快速清理截图/大文件</td>
+        <td>精确多条件组合筛选</td>
+        <td>兼顾快速和精确</td>
+      </tr>
+      <tr>
+        <td>开发工作量</td>
+        <td>小（1~2 天）</td>
+        <td>中（3~4 天）</td>
+        <td>中（4~5 天）</td>
+      </tr>
+      <tr>
+        <td>首页复杂度</td>
+        <td>增加一行标签</td>
+        <td>不变</td>
+        <td>增加一行标签 + 链接</td>
+      </tr>
+      <tr>
+        <td>筛选能力</td>
+        <td>单一条件</td>
+        <td>多条件组合</td>
+        <td>单一 + 多条件组合</td>
+      </tr>
+      <tr>
+        <td>推荐指数</td>
+        <td><span class="star">⭐⭐⭐</span></td>
+        <td><span class="star">⭐⭐⭐⭐</span></td>
+        <td><span class="star">⭐⭐⭐⭐⭐</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div style="text-align: center; padding: 30px; color: var(--text3); font-size: 12px;">
+  PicS V1.2 筛选功能设计方案 · 点击标签和界面元素可体验交互
+</div>
+
+<script>
+// Tab switching
+function showTab(index) {
+  document.querySelectorAll('.mockup').forEach((m, i) => {
+    m.classList.toggle('active', i === index);
+  });
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', i === index);
+  });
+}
+
+// Chip toggle for Option A
+let selectedChipA = null;
+function toggleChipA(el, name) {
+  const action = document.getElementById('filterActionA');
+  if (el.classList.contains('selected')) {
+    el.classList.remove('selected');
+    selectedChipA = null;
+    action.classList.remove('show');
+  } else {
+    document.querySelectorAll('#chipsA .chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedChipA = name;
+    action.textContent = '开始清理 ' + name;
+    action.classList.add('show');
+  }
+}
+
+// Chip toggle for Option C
+let selectedChipC = null;
+function toggleChipC(el, name) {
+  const action = document.getElementById('filterActionC');
+  if (el.classList.contains('selected')) {
+    el.classList.remove('selected');
+    selectedChipC = null;
+    action.classList.remove('show');
+  } else {
+    document.querySelectorAll('#chipsC .chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedChipC = name;
+    action.textContent = '开始清理 ' + name;
+    action.classList.add('show');
+  }
+}
+
+// Time button selection
+function selectTime(el, group) {
+  el.parentElement.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// Segmented control
+function selectSeg(el) {
+  el.parentElement.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// Album toggle
+function toggleAlbum(el) {
+  const check = el.querySelector('.album-check');
+  if (check) check.classList.toggle('checked');
+}
+
+// Update count for option B
+function updateCountB() {
+  const toggles = document.querySelectorAll('#mockup1 .toggle.on');
+  let count = 3847;
+  toggles.forEach(t => {
+    const label = t.parentElement.querySelector('.filter-row-label')?.textContent || '';
+    if (label.includes('截图')) count = 326;
+    if (label.includes('大文件')) count = Math.min(count, 89);
+  });
+  document.getElementById('countB').textContent = count.toLocaleString();
+}
+</script>
+
+</body>
+</html>
