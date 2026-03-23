@@ -25,16 +25,17 @@ final class HomeViewModel {
     ///   - storageService: 存储服务
     ///   - statsService: 统计服务
     ///   - modelContext: SwiftData 上下文
+    @MainActor
     func loadData(
         photoService: PhotoLibraryService,
         storageService: StorageService,
         statsService: StatisticsService,
         modelContext: ModelContext
-    ) {
+    ) async {
         isLoading = true
         storageInfo = storageService.fetchStorageInfo()
-        photoCount = photoService.fetchAssetCount(for: .image)
-        videoCount = photoService.fetchAssetCount(for: .video)
+        photoCount = await photoService.fetchAssetCount(for: .image)
+        videoCount = await photoService.fetchAssetCount(for: .video)
         totalDeletedCount = statsService.totalDeletedCount(in: modelContext)
         totalFreedSpace = statsService.totalFreedSpace(in: modelContext)
         batchSize = statsService.getSettings(in: modelContext).batchSize

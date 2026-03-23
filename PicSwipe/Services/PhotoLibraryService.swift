@@ -21,39 +21,46 @@ final class PhotoLibraryService {
 
     // MARK: - 照片读取
 
-    func fetchAssetCount(for mediaType: PHAssetMediaType) -> Int {
-        let options = PHFetchOptions()
-        options.predicate = NSPredicate(format: "mediaType == %d", mediaType.rawValue)
-        return PHAsset.fetchAssets(with: options).count
+    func fetchAssetCount(for mediaType: PHAssetMediaType) async -> Int {
+        await Task.detached(priority: .userInitiated) {
+            let options = PHFetchOptions()
+            options.predicate = NSPredicate(format: "mediaType == %d", mediaType.rawValue)
+            return PHAsset.fetchAssets(with: options).count
+        }.value
     }
 
     func fetchRandomAssets(mode: CleanMode, count: Int, filter: FilterCriteria? = nil) async -> CleanSession {
-        let mediaType: PHAssetMediaType = mode == .photo ? .image : .video
-        let options = PHFetchOptions()
-        var predicates: [NSPredicate] = [
-            NSPredicate(format: "mediaType == %d", mediaType.rawValue)
-        ]
-        if let startDate = filter?.startDate {
-            predicates.append(NSPredicate(format: "creationDate >= %@", startDate as NSDate))
-        }
-        if let endDate = filter?.endDate {
-            predicates.append(NSPredicate(format: "creationDate <= %@", endDate as NSDate))
-        }
-        options.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+        // 在后台线程执行 PhotoKit 读取，避免阻塞主线程
+        // 解决 "Missing prefetched properties" 主线程卡顿问题
+        let session = await Task.detached(priority: .userInitiated) {
+            let mediaType: PHAssetMediaType = mode == .photo ? .image : .video
+            let options = PHFetchOptions()
+            var predicates: [NSPredicate] = [
+                NSPredicate(format: "mediaType == %d", mediaType.rawValue)
+            ]
+            if let startDate = filter?.startDate {
+                predicates.append(NSPredicate(format: "creationDate >= %@", startDate as NSDate))
+            }
+            if let endDate = filter?.endDate {
+                predicates.append(NSPredicate(format: "creationDate <= %@", endDate as NSDate))
+            }
+            options.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
 
-        let fetchResult = PHAsset.fetchAssets(with: options)
-        var allAssets: [PHAsset] = []
-        fetchResult.enumerateObjects { asset, _, _ in allAssets.append(asset) }
+            let fetchResult = PHAsset.fetchAssets(with: options)
+            var allAssets: [PHAsset] = []
+            fetchResult.enumerateObjects { asset, _, _ in allAssets.append(asset) }
 
-        // Fisher-Yates shuffle
-        var shuffled = allAssets
-        for i in stride(from: shuffled.count - 1, through: 1, by: -1) {
-            let j = Int.random(in: 0...i)
-            shuffled.swapAt(i, j)
-        }
-        let selected = Array(shuffled.prefix(count))
-        let assetItems = selected.map { AssetItem(phAsset: $0, fileSize: Self.getFileSize(for: $0)) }
-        return CleanSession(mode: mode, assets: assetItems, filter: filter)
+            // Fisher-Yates shuffle
+            var shuffled = allAssets
+            for i in stride(from: shuffled.count - 1, through: 1, by: -1) {
+                let j = Int.random(in: 0...i)
+                shuffled.swapAt(i, j)
+            }
+            let selected = Array(shuffled.prefix(count))
+            let assetItems = selected.map { AssetItem(phAsset: $0, fileSize: Self.getFileSize(for: $0)) }
+            return CleanSession(mode: mode, assets: assetItems, filter: filter)
+        }.value
+        return session
     }
 
     func deleteAssets(_ assets: [AssetItem]) async throws -> Int {
@@ -91,12 +98,19 @@ final class PhotoLibraryService {
         let options = PHImageRequestOptions()
         options.deliveryMode = .opportunistic
         options.isNetworkAccessAllowed = true
+        options.resizeMode = .fast
         return imageManager.requestImage(
             for: asset,
             targetSize: targetSize,
             contentMode: contentMode,
             options: options
-        ) { image, _ in completion(image) }
+        ) { image, info in
+            // 忽略解码失败/iCloud 不可用的情况，回调 nil 由 UI 层处理
+            let isDegraded = (info?[PHImageResultIsDegradedKey] as? Bool) ?? false
+            if image != nil || !isDegraded {
+                completion(image)
+            }
+        }
     }
 
     func startCaching(assets: [PHAsset], targetSize: CGSize) {

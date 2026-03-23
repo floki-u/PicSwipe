@@ -5,6 +5,8 @@ import Photos
 
 /// 设置页 — 卡片式布局
 struct SettingsView: View {
+    @Binding var path: NavigationPath
+
     @Environment(PhotoLibraryService.self) private var photoService
     @Environment(StatisticsService.self) private var statsService
     @Environment(\.modelContext) private var modelContext
@@ -12,6 +14,7 @@ struct SettingsView: View {
     @State private var userSettings: UserSettings?
     @State private var totalDeleted: Int = 0
     @State private var totalFreed: Int64 = 0
+    @State private var showPrivacyPolicy: Bool = false
 
     private let batchOptions = [10, 20, 30, 50]
 
@@ -32,8 +35,32 @@ struct SettingsView: View {
             }
         }
         .navigationTitle("设置")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    path.removeLast()
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(.white)
+                }
+            }
+        }
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .gesture(
+            DragGesture(minimumDistance: 20)
+                .onEnded { value in
+                    // 左滑返回：起始在左侧 1/4 区域，向右滑超过 80pt
+                    if value.startLocation.x < 60 && value.translation.width > 80 {
+                        path.removeLast()
+                    }
+                }
+        )
+        .sheet(isPresented: $showPrivacyPolicy) {
+            privacyPolicySheet
+        }
         .onAppear {
             loadData()
         }
@@ -54,12 +81,12 @@ struct SettingsView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("PicSwipe")
+                    Text("PicS")
                         .font(.headline)
                         .fontWeight(.bold)
                         .foregroundStyle(.white)
 
-                    Text("版本 1.0.0")
+                    Text("版本    ")
                         .font(.caption)
                         .foregroundStyle(Color.textSecondary)
 
@@ -196,8 +223,7 @@ struct SettingsView: View {
         CardContainer {
             VStack(spacing: 0) {
                 settingsRow(emoji: "👆", title: "重播手势教程") {
-                    userSettings?.hasSeenTutorial = false
-                    try? modelContext.save()
+                    replayTutorial()
                 }
 
                 divider
@@ -209,7 +235,7 @@ struct SettingsView: View {
                 divider
 
                 settingsRow(emoji: "🌿", title: "隐私政策") {
-                    // V1.1: 打开隐私政策页面
+                    showPrivacyPolicy = true
                 }
             }
         }
@@ -245,6 +271,89 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - 隐私政策 Sheet
+
+    private var privacyPolicySheet: some View {
+        NavigationStack {
+            ZStack {
+                Color.appBackground.ignoresSafeArea()
+
+                ScrollView {
+                    VStack(alignment: .leading, spacing: Spacing.lg) {
+                        Text("PicS 尊重您的隐私。以下是我们的隐私承诺：")
+                            .font(.body)
+                            .foregroundStyle(.white)
+
+                        privacyItem(
+                            icon: "shield.checkered",
+                            title: "纯本地运行",
+                            description: "所有操作均在您的设备上完成，照片不会上传到任何服务器。"
+                        )
+
+                        privacyItem(
+                            icon: "antenna.radiowaves.left.and.right.slash",
+                            title: "无网络请求",
+                            description: "PicS 不需要网络连接，不会发送任何数据到外部。"
+                        )
+
+                        privacyItem(
+                            icon: "person.crop.circle.badge.xmark",
+                            title: "不收集个人信息",
+                            description: "我们不收集、不存储、不分享您的任何个人信息或使用数据。"
+                        )
+
+                        privacyItem(
+                            icon: "photo.on.rectangle",
+                            title: "相册权限",
+                            description: "仅用于读取和删除您选择清理的照片/视频。删除操作会先移至系统「最近删除」，30天内可恢复。"
+                        )
+
+                        privacyItem(
+                            icon: "internaldrive",
+                            title: "本地统计",
+                            description: "清理历史记录仅保存在您的设备上，卸载应用后自动清除。"
+                        )
+                    }
+                    .padding(.horizontal, Spacing.pagePadding)
+                    .padding(.top, Spacing.md)
+                    .padding(.bottom, Spacing.xl)
+                }
+            }
+            .navigationTitle("隐私政策")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("完成") {
+                        showPrivacyPolicy = false
+                    }
+                    .foregroundStyle(Color.brandPrimary)
+                }
+            }
+            .toolbarColorScheme(.dark, for: .navigationBar)
+        }
+        .presentationDetents([.large])
+    }
+
+    private func privacyItem(icon: String, title: String, description: String) -> some View {
+        HStack(alignment: .top, spacing: Spacing.md) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundStyle(Color.brandPrimary)
+                .frame(width: 32)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.white)
+                Text(description)
+                    .font(.caption)
+                    .foregroundStyle(Color.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
     // MARK: - 数据加载
 
     private func loadData() {
@@ -259,6 +368,14 @@ struct SettingsView: View {
         guard let settings = userSettings else { return }
         settings.batchSize = size
         try? modelContext.save()
+    }
+
+    /// 重播手势教程：重置标记并返回首页触发 onboarding
+    private func replayTutorial() {
+        userSettings?.hasSeenTutorial = false
+        try? modelContext.save()
+        // 清空导航栈回到首页，RootView 会检测到 hasSeenTutorial == false 并显示教程
+        path = NavigationPath()
     }
 
     private func openSystemSettings() {

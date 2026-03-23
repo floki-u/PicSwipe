@@ -3,7 +3,8 @@ import SwiftUI
 import SwiftData
 
 /// 滑动浏览页 — 核心交互页面
-/// 上滑保留、左滑删除、下滑回看、点击切换纯净模式
+/// 照片模式：上滑保留、左滑删除、下滑回看、点击切换纯净模式
+/// 视频模式：上下滑动切换视频、底部浮动按钮标记删除/撤回
 struct SwipeView: View {
     @Binding var path: NavigationPath
     @Binding var cleanSession: CleanSession?
@@ -17,10 +18,8 @@ struct SwipeView: View {
     @State private var vm = SwipeViewModel()
     @State private var isLoading = true
     @State private var isEmpty = false
-
-    // 动画叠加层
-    @State private var showKeepFlash = false
-    @State private var showDeleteFlash = false
+    /// 防止触觉反馈在每帧重复触发
+    @State private var hasTriggeredHaptic = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -97,42 +96,35 @@ struct SwipeView: View {
     @ViewBuilder
     private func swipeContent(screenSize: CGSize) -> some View {
         ZStack {
-            // 照片卡片
+            // 照片/视频卡片
             if let asset = vm.currentAsset {
-                SwipeCardView(
+                let cardView = SwipeCardView(
                     asset: asset,
                     dragOffset: vm.dragOffset,
-                    rotation: vm.rotationAngle(
-                        translation: vm.dragOffset,
-                        screenWidth: screenSize.width
-                    ),
-                    isOverThreshold: vm.isOverThreshold(
-                        translation: vm.dragOffset,
+                    rotation: mode == .photo
+                        ? vm.rotationAngle(translation: vm.dragOffset, screenWidth: screenSize.width)
+                        : .zero,
+                    dragProgress: vm.dragProgress(
+                        translation: vm.rawTranslation,
                         screenSize: screenSize
                     ),
-                    direction: vm.dragDirection
+                    direction: vm.dragDirection,
+                    isVideoMode: mode == .video
                 )
                 .id(vm.currentIndex) // 强制刷新
-                .gesture(swipeGesture(screenSize: screenSize))
-                .onTapGesture {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        vm.toggleUI()
-                    }
+
+                if mode == .photo {
+                    cardView
+                        .onTapGesture {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                vm.toggleUI()
+                            }
+                        }
+                        .gesture(photoSwipeGesture(screenSize: screenSize))
+                } else {
+                    cardView
+                        .gesture(videoSwipeGesture(screenSize: screenSize))
                 }
-            }
-
-            // 保留闪光叠加
-            if showKeepFlash {
-                Color.brandPrimary.opacity(0.3)
-                    .ignoresSafeArea()
-                    .allowsHitTesting(false)
-            }
-
-            // 删除闪光叠加
-            if showDeleteFlash {
-                Color.destructiveRed.opacity(0.3)
-                    .ignoresSafeArea()
-                    .allowsHitTesting(false)
             }
 
             // UI 叠加层
@@ -140,9 +132,16 @@ struct SwipeView: View {
                 VStack {
                     topBar
                     Spacer()
-                    bottomInfo
+                    if mode == .photo {
+                        bottomInfo
+                    }
                     progressBar(screenWidth: screenSize.width)
                 }
+            }
+
+            // 视频模式：底部浮动操作按钮
+            if mode == .video {
+                videoFloatingButtons
             }
         }
     }
@@ -155,12 +154,12 @@ struct SwipeView: View {
             Button {
                 path.removeLast()
             } label: {
-                HStack(spacing: Spacing.xs) {
-                    Image(systemName: "chevron.left")
-                    Text("返回")
-                }
-                .foregroundStyle(.white)
-                .font(.body.weight(.medium))
+                Image(systemName: "chevron.left")
+                    .foregroundStyle(.white)
+                    .font(.body.weight(.medium))
+                    .padding(8)
+                    .background(.black.opacity(0.3))
+                    .clipShape(Circle())
             }
 
             Spacer()
@@ -189,7 +188,7 @@ struct SwipeView: View {
                 .monospacedDigit()
         }
         .padding(.horizontal, Spacing.pagePadding)
-        .padding(.top, Spacing.xl + 20) // 给状态栏留空间
+        .padding(.top, Spacing.xl + 20)
         .background(
             LinearGradient(
                 colors: [.black.opacity(0.5), .clear],
@@ -234,37 +233,53 @@ struct SwipeView: View {
         .padding(.bottom, Spacing.xl)
     }
 
-    // MARK: - 手势
+    // MARK: - 照片模式手势
 
-    private func swipeGesture(screenSize: CGSize) -> some Gesture {
-        DragGesture(minimumDistance: 20)
+    /// 跟手衰减系数
+    private let dragDampingFactor: CGFloat = 0.5
+
+    private func photoSwipeGesture(screenSize: CGSize) -> some Gesture {
+        DragGesture(minimumDistance: 8)
             .onChanged { value in
-                vm.dragOffset = value.translation
+                vm.rawTranslation = value.translation
+                vm.dragOffset = CGSize(
+                    width: value.translation.width * dragDampingFactor,
+                    height: value.translation.height * dragDampingFactor
+                )
                 vm.dragDirection = vm.detectDirection(translation: value.translation)
 
-                // 越过阈值时触发触觉
+                // 越过阈值时触发触觉（仅一次，防止卡死）
                 let overThreshold = vm.isOverThreshold(
                     translation: value.translation,
                     screenSize: screenSize
                 )
-                if overThreshold {
+                if overThreshold && !hasTriggeredHaptic {
+                    hasTriggeredHaptic = true
                     HapticService.thresholdReached(direction: vm.dragDirection)
+                } else if !overThreshold {
+                    hasTriggeredHaptic = false
                 }
             }
             .onEnded { value in
+                hasTriggeredHaptic = false
                 let direction = vm.detectDirection(translation: value.translation)
                 let overThreshold = vm.isOverThreshold(
                     translation: value.translation,
                     screenSize: screenSize
                 )
+                let predictedEnd = value.predictedEndTranslation
+                let fastSwipe = vm.isOverThreshold(
+                    translation: predictedEnd,
+                    screenSize: screenSize
+                )
 
-                if overThreshold {
+                if overThreshold || fastSwipe {
                     HapticService.gestureTriggered()
                     switch direction {
                     case .up:
-                        triggerKeep(screenSize: screenSize)
+                        triggerKeep(screenSize: screenSize, predictedEnd: predictedEnd)
                     case .left:
-                        triggerDelete(screenSize: screenSize)
+                        triggerDelete(screenSize: screenSize, predictedEnd: predictedEnd)
                     case .down:
                         triggerGoBack()
                     default:
@@ -276,54 +291,110 @@ struct SwipeView: View {
             }
     }
 
-    // MARK: - 触发动作
+    // MARK: - 视频模式手势（仅上下滑动）
 
-    private func triggerKeep(screenSize: CGSize) {
+    private func videoSwipeGesture(screenSize: CGSize) -> some Gesture {
+        DragGesture(minimumDistance: 20)
+            .onChanged { value in
+                vm.rawTranslation = CGSize(width: 0, height: value.translation.height)
+                vm.dragOffset = CGSize(
+                    width: 0,
+                    height: value.translation.height * dragDampingFactor
+                )
+                let verticalDirection = value.translation.height < 0 ? SwipeDirection.up : .down
+                if abs(value.translation.height) > 10 {
+                    vm.dragDirection = verticalDirection
+                }
+            }
+            .onEnded { value in
+                let absY = abs(value.translation.height)
+                let thresholdY = screenSize.height / 6
+                let predictedAbsY = abs(value.predictedEndTranslation.height)
+
+                if absY > thresholdY || predictedAbsY > thresholdY {
+                    HapticService.gestureTriggered()
+                    if value.translation.height < 0 {
+                        triggerVideoNext(screenSize: screenSize)
+                    } else {
+                        triggerVideoBack()
+                    }
+                } else {
+                    snapBack()
+                }
+            }
+    }
+
+    // MARK: - 视频浮动操作按钮（右侧垂直居中）
+
+    private var videoFloatingButtons: some View {
+        HStack {
+            Spacer()
+
+            VStack(spacing: Spacing.lg) {
+                // 删除按钮
+                Button {
+                    HapticService.gestureTriggered()
+                    triggerVideoDelete(screenSize: UIScreen.main.bounds.size)
+                } label: {
+                    Image(systemName: "trash")
+                        .font(.title2)
+                        .foregroundStyle(.white)
+                        .frame(width: 52, height: 52)
+                        .background(Color.destructiveRed)
+                        .clipShape(Circle())
+                }
+
+                // 撤回按钮（仅在有标记时显示）
+                if vm.markedCount > 0 {
+                    Button {
+                        vm.undoLastMark()
+                        HapticService.gestureTriggered()
+                    } label: {
+                        Image(systemName: "arrow.uturn.backward")
+                            .font(.title3)
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(Color.white.opacity(0.2))
+                            .clipShape(Circle())
+                    }
+                    .transition(.scale.combined(with: .opacity))
+                }
+            }
+            .padding(.trailing, Spacing.pagePadding)
+            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: vm.markedCount)
+        }
+    }
+
+    // MARK: - 照片模式触发动作
+
+    private func triggerKeep(screenSize: CGSize, predictedEnd: CGSize) {
         if reduceMotion {
-            // 无障碍模式：简单淡出替代飞出动画
-            withAnimation(.easeOut(duration: 0.25)) {
-                showKeepFlash = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                vm.keepCurrent()
-                showKeepFlash = false
-            }
+            vm.keepCurrent()
         } else {
-            // 飞出动画
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                vm.dragOffset = CGSize(width: 0, height: -screenSize.height)
+            withAnimation(.easeOut(duration: 0.3)) {
+                vm.dragOffset = CGSize(
+                    width: predictedEnd.width * 0.5 * dragDampingFactor,
+                    height: -screenSize.height * 1.2
+                )
             }
-            // 绿色闪光
-            showKeepFlash = true
-            // 延迟后执行动作
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
                 vm.keepCurrent()
-                showKeepFlash = false
             }
         }
     }
 
-    private func triggerDelete(screenSize: CGSize) {
+    private func triggerDelete(screenSize: CGSize, predictedEnd: CGSize) {
         if reduceMotion {
-            // 无障碍模式：简单淡出替代飞出动画
-            withAnimation(.easeOut(duration: 0.25)) {
-                showDeleteFlash = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                vm.deleteCurrent()
-                showDeleteFlash = false
-            }
+            vm.deleteCurrent()
         } else {
-            // 飞出动画
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                vm.dragOffset = CGSize(width: -screenSize.width, height: 0)
+            withAnimation(.easeOut(duration: 0.3)) {
+                vm.dragOffset = CGSize(
+                    width: -screenSize.width * 1.2,
+                    height: predictedEnd.height * 0.5 * dragDampingFactor
+                )
             }
-            // 红色闪光
-            showDeleteFlash = true
-            // 延迟后执行动作
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
                 vm.deleteCurrent()
-                showDeleteFlash = false
             }
         }
     }
@@ -334,15 +405,55 @@ struct SwipeView: View {
             snapBack()
             return
         }
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
             vm.goBack()
         }
     }
 
+    // MARK: - 视频模式触发动作
+
+    private func triggerVideoNext(screenSize: CGSize) {
+        if reduceMotion {
+            vm.advanceToNext()
+        } else {
+            withAnimation(.easeOut(duration: 0.3)) {
+                vm.dragOffset = CGSize(width: 0, height: -screenSize.height * 1.2)
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                vm.advanceToNext()
+            }
+        }
+    }
+
+    private func triggerVideoBack() {
+        guard vm.currentIndex > 0 else {
+            HapticService.boundaryReached()
+            snapBack()
+            return
+        }
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+            vm.goBack()
+        }
+    }
+
+    private func triggerVideoDelete(screenSize: CGSize) {
+        if reduceMotion {
+            vm.markDeleteAndAdvance()
+        } else {
+            withAnimation(.easeOut(duration: 0.3)) {
+                vm.dragOffset = CGSize(width: -screenSize.width * 1.2, height: 0)
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                vm.markDeleteAndAdvance()
+            }
+        }
+    }
+
     private func snapBack() {
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
             vm.dragOffset = .zero
             vm.dragDirection = .none
+            vm.rawTranslation = .zero
         }
     }
 

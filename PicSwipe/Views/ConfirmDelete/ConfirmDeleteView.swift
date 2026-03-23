@@ -3,8 +3,10 @@ import SwiftUI
 import Photos
 import SwiftData
 
-/// 确认删除页 — 逐张预览待删除照片
+/// 确认删除页 — 逐张预览待删除照片/视频
 /// 支持左右滑动切换、单张撤回、全部撤回、确认删除
+/// 照片模式：点击照片可查看全屏大图
+/// 视频模式：列表式展示，适合视频缩略图预览
 struct ConfirmDeleteView: View {
     @Binding var path: NavigationPath
     @Binding var cleanSession: CleanSession?
@@ -15,6 +17,12 @@ struct ConfirmDeleteView: View {
 
     @State private var vm = ConfirmDeleteViewModel()
     @State private var isDeleting = false
+    @State private var fullScreenAsset: AssetItem?
+
+    /// 当前清理模式
+    private var currentMode: CleanMode {
+        cleanSession?.mode ?? .photo
+    }
 
     var body: some View {
         ZStack {
@@ -23,7 +31,26 @@ struct ConfirmDeleteView: View {
             if vm.markedAssets.isEmpty {
                 allKeptView
             } else {
-                mainContent
+                if currentMode == .video {
+                    videoConfirmContent
+                } else {
+                    photoConfirmContent
+                }
+            }
+
+            // 全屏照片查看器叠加层（仅照片模式）
+            if let asset = fullScreenAsset {
+                FullScreenPhotoView(
+                    asset: asset,
+                    photoService: photoService,
+                    onDismiss: {
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            fullScreenAsset = nil
+                        }
+                    }
+                )
+                .transition(.opacity)
+                .zIndex(100)
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -46,7 +73,7 @@ struct ConfirmDeleteView: View {
                 .fontWeight(.bold)
                 .foregroundStyle(.white)
 
-            Text("没有照片被删除")
+            Text(currentMode == .video ? "没有视频被删除" : "没有照片被删除")
                 .font(.body)
                 .foregroundStyle(Color.textSecondary)
 
@@ -60,9 +87,9 @@ struct ConfirmDeleteView: View {
         }
     }
 
-    // MARK: - 主内容
+    // MARK: - 照片确认删除内容
 
-    private var mainContent: some View {
+    private var photoConfirmContent: some View {
         VStack(spacing: 0) {
             headerSection
                 .padding(.top, Spacing.lg)
@@ -87,7 +114,158 @@ struct ConfirmDeleteView: View {
         }
     }
 
-    // MARK: - 顶部标题
+    // MARK: - 视频确认删除内容
+
+    private var videoConfirmContent: some View {
+        VStack(spacing: 0) {
+            // 顶部标题
+            VStack(spacing: Spacing.xs) {
+                Text("确认删除")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.white)
+                Text("以下 \(vm.markedAssets.count) 个视频将被移到最近删除")
+                    .font(.caption)
+                    .foregroundStyle(Color.textSecondary)
+            }
+            .padding(.top, Spacing.lg)
+            .padding(.horizontal, Spacing.pagePadding)
+
+            // 视频列表
+            ScrollView {
+                LazyVStack(spacing: Spacing.sm) {
+                    ForEach(Array(vm.markedAssets.enumerated()), id: \.element.id) { index, asset in
+                        videoDeleteRow(for: asset, index: index)
+                    }
+                }
+                .padding(.horizontal, Spacing.pagePadding)
+                .padding(.top, Spacing.md)
+            }
+
+            // 释放空间 + 操作按钮
+            VStack(spacing: Spacing.md) {
+                sizeInfo
+                videoBottomActions
+            }
+            .padding(.top, Spacing.md)
+            .padding(.horizontal, Spacing.pagePadding)
+            .padding(.bottom, Spacing.lg)
+        }
+    }
+
+    /// 视频列表单行
+    private func videoDeleteRow(for asset: AssetItem, index: Int) -> some View {
+        HStack(spacing: Spacing.md) {
+            // 视频缩略图
+            AssetThumbnailView(asset: asset, photoService: photoService)
+                .frame(width: 80, height: 56)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .overlay(
+                    // 播放图标
+                    Image(systemName: "play.fill")
+                        .font(.caption)
+                        .foregroundStyle(.white)
+                        .padding(4)
+                        .background(.black.opacity(0.5))
+                        .clipShape(Circle())
+                )
+
+            // 视频信息
+            VStack(alignment: .leading, spacing: 2) {
+                if let date = asset.creationDate {
+                    Text(date, style: .date)
+                        .font(.subheadline)
+                        .foregroundStyle(.white)
+                }
+                HStack(spacing: Spacing.sm) {
+                    Text(formatFileSize(asset.fileSize))
+                        .font(.caption)
+                        .foregroundStyle(Color.textSecondary)
+                    if let phAsset = asset.phAsset {
+                        Text(formatVideoDuration(phAsset.duration))
+                            .font(.caption)
+                            .foregroundStyle(Color.textSecondary)
+                    }
+                }
+            }
+
+            Spacer()
+
+            // 撤回按钮
+            Button {
+                vm.revokeMarking(for: asset.localIdentifier)
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.uturn.backward")
+                        .font(.caption2.weight(.bold))
+                    Text("撤回")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(.white.opacity(0.15))
+                .clipShape(Capsule())
+            }
+        }
+        .padding(.vertical, Spacing.sm)
+        .padding(.horizontal, Spacing.md)
+        .background(Color.surfaceBackground)
+        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.card))
+    }
+
+    /// 视频模式底部操作按钮
+    private var videoBottomActions: some View {
+        VStack(spacing: Spacing.md) {
+            // 确认删除按钮
+            Button {
+                Task { await performDelete() }
+            } label: {
+                HStack {
+                    if isDeleting {
+                        ProgressView()
+                            .tint(.white)
+                            .scaleEffect(0.8)
+                    } else {
+                        Text("确认删除 \(vm.markedAssets.count) 个视频")
+                            .font(.body)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.white)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(isDeleting ? Color.destructiveRed.opacity(0.6) : Color.destructiveRed)
+                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.button))
+            }
+            .disabled(isDeleting)
+
+            // 辅助操作链接
+            HStack(spacing: Spacing.xl) {
+                Button("再来一组") {
+                    goToNextBatch()
+                }
+                .font(.subheadline)
+                .foregroundStyle(Color.textSecondary)
+
+                Button("全部撤回") {
+                    revokeAllAndGoBack()
+                }
+                .font(.subheadline)
+                .foregroundStyle(Color.brandPrimary)
+            }
+        }
+    }
+
+    /// 视频时长格式化
+    private func formatVideoDuration(_ duration: TimeInterval) -> String {
+        let mins = Int(duration) / 60
+        let secs = Int(duration) % 60
+        return String(format: "%d:%02d", mins, secs)
+    }
+
+    // MARK: - 照片顶部标题
 
     private var headerSection: some View {
         VStack(spacing: Spacing.xs) {
@@ -95,13 +273,13 @@ struct ConfirmDeleteView: View {
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundStyle(.white)
-            Text("左右滑动查看每张照片")
+            Text("左右滑动查看，点击照片查看大图")
                 .font(.caption)
                 .foregroundStyle(Color.textSecondary)
         }
     }
 
-    // MARK: - 大图预览（TabView 可滑动）
+    // MARK: - 照片大图预览（TabView 可滑动）
 
     private var previewSection: some View {
         TabView(selection: $vm.currentPreviewIndex) {
@@ -117,10 +295,15 @@ struct ConfirmDeleteView: View {
 
     private func previewCard(for asset: AssetItem, index: Int) -> some View {
         ZStack(alignment: .top) {
-            // 照片缩略图
+            // 照片缩略图（点击查看全屏）
             AssetThumbnailView(asset: asset, photoService: photoService)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .clipShape(RoundedRectangle(cornerRadius: 18))
+                .onTapGesture {
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        fullScreenAsset = asset
+                    }
+                }
 
             // 底部渐变信息
             VStack {
@@ -149,6 +332,7 @@ struct ConfirmDeleteView: View {
                 )
             }
             .clipShape(RoundedRectangle(cornerRadius: 18))
+            .allowsHitTesting(false)
 
             // 顶部操作栏
             HStack {
@@ -164,17 +348,22 @@ struct ConfirmDeleteView: View {
 
                 Spacer()
 
-                // 撤回按钮
+                // 撤回胶囊按钮
                 Button {
                     vm.revokeMarking(for: asset.localIdentifier)
                 } label: {
-                    Image(systemName: "xmark")
-                        .font(.caption)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.white)
-                        .padding(8)
-                        .background(.black.opacity(0.5))
-                        .clipShape(Circle())
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrow.uturn.backward")
+                            .font(.caption2.weight(.bold))
+                        Text("撤回")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(.black.opacity(0.6))
+                    .clipShape(Capsule())
                 }
             }
             .padding(12)
@@ -254,7 +443,7 @@ struct ConfirmDeleteView: View {
                             .tint(.white)
                             .scaleEffect(0.8)
                     } else {
-                        Text("确认删除 (\(vm.markedAssets.count))")
+                        Text("确认删除 \(vm.markedAssets.count) 张照片")
                             .font(.body)
                             .fontWeight(.bold)
                             .foregroundStyle(.white)
@@ -298,19 +487,23 @@ struct ConfirmDeleteView: View {
                 in: modelContext
             )
             HapticService.deleteSuccess()
+            let resultMode = cleanSession?.mode ?? .photo
             cleanSession = nil
-            path.append(AppDestination.result(deletedCount: deletedCount, freedSpace: freedSpace))
+            path.append(AppDestination.result(deletedCount: deletedCount, freedSpace: freedSpace, mode: resultMode))
         } catch {
             HapticService.deleteError()
-            // 删除失败也跳转到结果页（显示 0）
-            path.append(AppDestination.result(deletedCount: 0, freedSpace: 0))
+            path.append(AppDestination.result(deletedCount: 0, freedSpace: 0, mode: currentMode))
         }
         isDeleting = false
     }
 
     private func goToNextBatch() {
+        let nextMode = currentMode
         cleanSession = nil
         path.removeLast(path.count)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            path.append(AppDestination.swipe(nextMode))
+        }
     }
 
     private func revokeAllAndGoBack() {
@@ -329,7 +522,7 @@ struct ConfirmDeleteView: View {
 // MARK: - 资源缩略图视图
 
 /// 从 PhotoLibraryService 异步加载 PHAsset 缩略图
-private struct AssetThumbnailView: View {
+struct AssetThumbnailView: View {
     let asset: AssetItem
     let photoService: PhotoLibraryService
 

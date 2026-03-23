@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>PicSwipe</string>
+	<string>PicS</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -21,7 +21,7 @@
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>PicSwipe 需要访问你的照片库来展示和清理照片。你的照片不会被上传或分享。</string>
+	<string>PicS 需要访问你的照片库来展示和清理照片。你的照片不会被上传或分享。</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UIRequiresFullScreen</key>

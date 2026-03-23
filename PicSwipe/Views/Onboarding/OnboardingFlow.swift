@@ -26,37 +26,28 @@ struct OnboardingFlow: View {
             WelcomeView {
                 advanceToPermissionStep()
             }
-            .transition(.asymmetric(
-                insertion: .move(edge: .trailing),
-                removal: .move(edge: .leading)
-            ))
+            .transition(.opacity.combined(with: .scale(scale: 0.95)))
 
         case .permission:
             PermissionView(
                 onAuthorized: {
-                    withAnimation(.easeInOut(duration: 0.3)) {
+                    withAnimation(.smooth(duration: 0.35)) {
                         step = .tutorial
                     }
                 },
                 onSkip: {
-                    withAnimation(.easeInOut(duration: 0.3)) {
+                    withAnimation(.smooth(duration: 0.35)) {
                         step = .tutorial
                     }
                 }
             )
-            .transition(.asymmetric(
-                insertion: .move(edge: .trailing),
-                removal: .move(edge: .leading)
-            ))
+            .transition(.opacity.combined(with: .scale(scale: 0.95)))
 
         case .tutorial:
             TutorialView {
                 showOnboarding = false
             }
-            .transition(.asymmetric(
-                insertion: .move(edge: .trailing),
-                removal: .move(edge: .leading)
-            ))
+            .transition(.opacity.combined(with: .scale(scale: 0.95)))
         }
     }
 
@@ -64,7 +55,7 @@ struct OnboardingFlow: View {
 
     private func advanceToPermissionStep() {
         let status = photoService.authorizationStatus
-        withAnimation(.easeInOut(duration: 0.3)) {
+        withAnimation(.smooth(duration: 0.35)) {
             if status == .notDetermined {
                 // 未请求过权限 → 显示权限页
                 step = .permission

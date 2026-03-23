@@ -228,13 +228,14 @@ private struct AnimatedArrowView: View {
                 .foregroundStyle(color)
                 .offset(offset)
                 .opacity(isAnimating ? 1 : 0.3)
-                .animation(
-                    .easeInOut(duration: 0.9).repeatForever(autoreverses: true),
-                    value: isAnimating
-                )
         }
         .onAppear {
-            isAnimating = true
+            // 延迟启动避免 SwiftUI 动画时序冲突
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) {
+                    isAnimating = true
+                }
+            }
         }
     }
 }

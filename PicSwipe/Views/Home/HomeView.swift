@@ -35,7 +35,7 @@ struct HomeView: View {
         }
         .toolbar(.hidden, for: .navigationBar)
         .task {
-            vm.loadData(
+            await vm.loadData(
                 photoService: photoService,
                 storageService: storageService,
                 statsService: statsService,
@@ -74,7 +74,7 @@ struct HomeView: View {
             VStack(spacing: Spacing.sm) {
                 Text("🌿")
                     .font(.system(size: 56))
-                Text("PicSwipe")
+                Text("PicS")
                     .font(.system(size: 32, weight: .black, design: .rounded))
                     .foregroundStyle(.white)
                 Text("滑一滑，轻松释放空间")

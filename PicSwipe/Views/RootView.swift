@@ -39,15 +39,16 @@ struct RootView: View {
                                 path: $path,
                                 cleanSession: $cleanSession
                             )
-                        case .result(let deletedCount, let freedSpace):
+                        case .result(let deletedCount, let freedSpace, let mode):
                             ResultView(
                                 path: $path,
                                 cleanSession: $cleanSession,
                                 deletedCount: deletedCount,
-                                freedSpace: freedSpace
+                                freedSpace: freedSpace,
+                                mode: mode
                             )
                         case .settings:
-                            SettingsView()
+                            SettingsView(path: $path)
                         case .filter:
                             EmptyView() // V1.1
                         }
@@ -56,7 +57,11 @@ struct RootView: View {
             }
         }
         .preferredColorScheme(.dark)
-        .onAppear {
+        .task {
+            checkOnboardingStatus()
+        }
+        .onChange(of: path) { _, _ in
+            // 当导航栈变化时（例如从设置页返回首页），重新检查 onboarding 状态
             checkOnboardingStatus()
         }
     }
@@ -70,6 +75,9 @@ struct RootView: View {
         // 已有权限且已看过教程 → 跳过引导
         if (authStatus == .authorized || authStatus == .limited) && settings.hasSeenTutorial {
             showOnboarding = false
+        } else if !settings.hasSeenTutorial {
+            // 教程未看过 → 显示引导（用于重播教程场景）
+            showOnboarding = true
         }
     }
 }

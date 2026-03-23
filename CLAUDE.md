@@ -4,17 +4,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**PicSwipe** — iOS 原生照片/视频快速清理工具。用户通过沉浸式的全屏滑动体验（上滑保留、左滑删除）快速清理手机中不需要的照片和视频。
+**PicS**（代码名 PicSwipe）— iOS 原生照片/视频快速清理工具。用户通过沉浸式的全屏滑动体验（上滑保留、左滑删除）快速清理手机中不需要的照片和视频。
 
 ## Project Status
 
 - ✅ 产品设计规格已完成：`docs/superpowers/specs/2026-03-19-picswipe-design.md`
 - ✅ PRD 文档已完成：`docs/PRD.md`
-- ✅ UI 设计规格已完成：`docs/superpowers/specs/2026-03-20-picswipe-ui-design.md`
-- ✅ 实施计划已完成：`docs/superpowers/plans/2026-03-20-picswipe-mvp.md`
+- ✅ UI 设计规格（V1.0 初稿）：`docs/superpowers/specs/2026-03-20-picswipe-ui-design.md`
+- ✅ UI 设计规格（V1.1 现行版）：`docs/superpowers/specs/2026-03-20-pics-v1.1-ui-design.md`
+- ✅ MVP V1.0 实施计划：`docs/superpowers/plans/2026-03-20-picswipe-mvp.md`
 - ✅ MVP V1.0 代码开发已完成
-- ⬜ V1.1 筛选与视频功能
-- ⬜ V1.2 体验优化
+- ✅ V1.1 细节打磨与体验优化已完成：`docs/superpowers/specs/2026-03-20-pics-v1.1-implementation.md`
+- ✅ 里程碑追踪：`docs/superpowers/plans/2026-03-20-pics-milestones.md`
+- ✅ 待优化与未来规划：`docs/superpowers/plans/2026-03-20-pics-backlog.md`
+- ⬜ V1.2 筛选与增强
+- ⬜ V2.0 智能清理
 
 ## Tech Stack
 
@@ -29,23 +33,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```
 PicSwipe/
+├── Assets.xcassets/        — 应用图标
 ├── App/                    — App entry point, lifecycle
 ├── Views/                  — SwiftUI views
 │   ├── HomeView            — 首页仪表盘
 │   ├── SwipeView           — 滑动浏览页（核心）
-│   ├── ConfirmDeleteView   — 确认删除页
-│   ├── FilterView          — 筛选页
+│   ├── SwipeCardView       — 单张卡片（照片/视频）
+│   ├── VideoPlayerView     — 增强视频播放器
+│   ├── ConfirmDeleteView   — 确认删除页（照片/视频双布局）
+│   ├── FullScreenPhotoView — 全屏照片查看器
+│   ├── ResultView          — 结果页（照片绿/视频红）
+│   ├── FilterView          — 筛选页（V1.2）
 │   └── SettingsView        — 设置页
 ├── ViewModels/             — View models (MVVM)
 ├── Models/                 — Data models (AssetItem, CleanSession, CleanRecord, UserSettings)
 ├── Services/               — Business logic
-│   ├── PhotoLibraryService — 相册读写、随机抽取
+│   ├── PhotoLibraryService — 相册读写、随机抽取（后台线程）
 │   ├── StorageService      — 设备存储信息
-│   └── StatisticsService   — 清理统计
+│   ├── StatisticsService   — 清理统计
+│   └── HapticService       — 触觉反馈
 └── docs/
+    ├── PRD.md              — 产品需求文档
     └── superpowers/
         ├── specs/          — 设计规格文档
+        │   ├── 2026-03-19-picswipe-design.md      — 技术设计规格
+        │   ├── 2026-03-20-picswipe-ui-design.md   — UI 设计规格（V1.0 初稿）
+        │   ├── 2026-03-20-pics-v1.1-ui-design.md  — UI 设计规格（V1.1 现行版）
+        │   └── 2026-03-20-pics-v1.1-implementation.md — V1.1 实施记录
         └── plans/          — 实施计划
+            ├── 2026-03-20-picswipe-mvp.md          — V1.0 MVP 计划
+            ├── 2026-03-20-pics-milestones.md       — 里程碑追踪
+            └── 2026-03-20-pics-backlog.md          — 待优化与未来规划
 ```
 
 ## Key Design Decisions

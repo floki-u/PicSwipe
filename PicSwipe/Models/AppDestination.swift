@@ -5,5 +5,5 @@ enum AppDestination: Hashable {
     case confirmDelete
     case filter
     case settings
-    case result(deletedCount: Int, freedSpace: Int64)
+    case result(deletedCount: Int, freedSpace: Int64, mode: CleanMode)
 }

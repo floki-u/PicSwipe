@@ -9,6 +9,7 @@ enum SwipeDirection {
 
 /// 滑动浏览页视图模型
 /// 管理滑动手势状态、当前索引推进、标记删除逻辑
+/// 支持照片模式（上滑保留/左滑删除）和视频模式（上下切换/按钮标记）
 @Observable
 final class SwipeViewModel {
 
@@ -22,6 +23,8 @@ final class SwipeViewModel {
 
     var dragOffset: CGSize = .zero
     var dragDirection: SwipeDirection = .none
+    /// 原始手指位移（未衰减），用于计算飞出方向
+    var rawTranslation: CGSize = .zero
 
     // MARK: - 计算属性
 
@@ -45,7 +48,7 @@ final class SwipeViewModel {
         session?.assets.count ?? 0
     }
 
-    // MARK: - 操作
+    // MARK: - 照片模式操作
 
     /// 上滑保留：不标记当前资源，推进到下一个
     func keepCurrent() {
@@ -94,6 +97,49 @@ final class SwipeViewModel {
         showUI.toggle()
     }
 
+    // MARK: - 视频模式操作
+
+    /// 仅推进到下一个视频，不标记保留/删除
+    func advanceToNext() {
+        guard var s = session else { return }
+        guard s.currentIndex < s.assets.count else { return }
+        if s.isAtLastAsset {
+            s.currentIndex = s.assets.count - 1
+            session = s
+            isFinished = true
+        } else {
+            s.currentIndex += 1
+            session = s
+        }
+        resetDrag()
+    }
+
+    /// 标记当前视频为删除，并自动推进到下一个
+    func markDeleteAndAdvance() {
+        guard var s = session else { return }
+        guard s.currentIndex < s.assets.count else { return }
+        s.assets[s.currentIndex].markedForDeletion = true
+        if s.isAtLastAsset {
+            s.currentIndex = s.assets.count - 1
+            session = s
+            isFinished = true
+        } else {
+            s.currentIndex += 1
+            session = s
+        }
+        resetDrag()
+    }
+
+    /// 撤回最后一个被标记的视频
+    func undoLastMark() {
+        guard var s = session else { return }
+        // 从后往前找最后一个被标记的
+        if let lastMarkedIndex = s.assets.lastIndex(where: { $0.markedForDeletion }) {
+            s.assets[lastMarkedIndex].markedForDeletion = false
+            session = s
+        }
+    }
+
     // MARK: - 手势辅助
 
     /// 根据拖拽位移判断主方向
@@ -113,19 +159,27 @@ final class SwipeViewModel {
         }
     }
 
-    /// 判断位移是否超过阈值（屏幕尺寸的 1/3）
+    /// 判断位移是否超过阈值（屏幕尺寸的 1/6，轻微滑动即可触发）
     func isOverThreshold(translation: CGSize, screenSize: CGSize) -> Bool {
         let absX = abs(translation.width)
         let absY = abs(translation.height)
-        let thresholdX = screenSize.width / 3
-        let thresholdY = screenSize.height / 3
+        let thresholdX = screenSize.width / 6
+        let thresholdY = screenSize.height / 6
         return absX > thresholdX || absY > thresholdY
     }
 
-    /// 计算卡片旋转角度，最大 ±10°，基于水平位移
+    /// 计算拖拽进度 0.0~1.0
+    func dragProgress(translation: CGSize, screenSize: CGSize) -> CGFloat {
+        let absX = abs(translation.width)
+        let absY = abs(translation.height)
+        let maxDistance = max(absX / screenSize.width, absY / screenSize.height)
+        return min(maxDistance * 3.0, 1.0) // 1/3 屏幕距离达到满值
+    }
+
+    /// 计算卡片旋转角度，最大 ±5°，基于水平位移
     func rotationAngle(translation: CGSize, screenWidth: CGFloat) -> Angle {
         guard screenWidth > 0 else { return .zero }
-        let maxAngle: Double = 10
+        let maxAngle: Double = 5
         let ratio = Double(translation.width) / Double(screenWidth)
         let clamped = max(-1, min(1, ratio))
         return .degrees(clamped * maxAngle)
@@ -133,8 +187,9 @@ final class SwipeViewModel {
 
     // MARK: - 私有方法
 
-    private func resetDrag() {
+    func resetDrag() {
         dragOffset = .zero
         dragDirection = .none
+        rawTranslation = .zero
     }
 }
