@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>PicS Icon - Option C: Pixel Potion Bottle</title>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #000; }
+    canvas { image-rendering: pixelated; }
+  </style>
+</head>
+<body>
+<canvas id="c" width="1024" height="1024"></canvas>
+<script>
+const c = document.getElementById('c');
+const ctx = c.getContext('2d');
+const P = 32;
+
+const BG = '#12101F';
+const TEAL = '#5DE6C8';
+const DEEP_TEAL = '#3BAA92';
+const AMBER = '#F0C674';
+const TEAL_DIM = '#2D7A68';
+const TEAL_BRIGHT = '#8CFCE0';
+const TEAL_DARK = '#1E5A4A';
+const GLASS = '#1A2840';
+const GLASS_HIGHLIGHT = '#2A3A55';
+const CORK = '#A08040';
+const CORK_DARK = '#6B5528';
+
+function px(x, y, color) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x * P, y * P, P, P);
+}
+
+function rect(x, y, w, h, color) {
+  for (let i = x; i < x + w; i++)
+    for (let j = y; j < y + h; j++)
+      px(i, j, color);
+}
+
+// Fill background
+ctx.fillStyle = BG;
+ctx.fillRect(0, 0, 1024, 1024);
+
+// Glow behind potion
+const grad = ctx.createRadialGradient(512, 480, 50, 512, 480, 380);
+grad.addColorStop(0, 'rgba(93, 230, 200, 0.12)');
+grad.addColorStop(1, 'rgba(0,0,0,0)');
+ctx.fillStyle = grad;
+ctx.fillRect(0, 0, 1024, 1024);
+
+// === CORK / STOPPER ===
+rect(14, 2, 4, 1, CORK_DARK);
+rect(14, 3, 4, 1, CORK);
+rect(14, 4, 4, 1, CORK_DARK);
+
+// === BOTTLE NECK ===
+rect(14, 5, 4, 1, GLASS_HIGHLIGHT);
+rect(14, 6, 4, 1, GLASS);
+rect(14, 7, 4, 1, GLASS);
+// Neck highlight
+px(14, 6, GLASS_HIGHLIGHT); px(14, 7, GLASS_HIGHLIGHT);
+
+// === BOTTLE NECK TO BODY TRANSITION ===
+rect(13, 8, 6, 1, GLASS);
+rect(12, 9, 8, 1, GLASS);
+rect(11, 10, 10, 1, GLASS);
+
+// === BOTTLE BODY (round flask shape) ===
+// Glass outline
+rect(10, 11, 12, 1, GLASS);
+rect(9, 12, 14, 1, GLASS);
+rect(8, 13, 16, 10, GLASS);
+rect(9, 23, 14, 1, GLASS);
+rect(10, 24, 12, 1, GLASS);
+
+// === TEAL LIQUID (fills bottom 60% of body) ===
+rect(9, 16, 14, 1, TEAL_DARK);  // Liquid surface line
+rect(9, 17, 14, 6, TEAL_DIM);   // Main liquid body
+rect(10, 23, 12, 1, TEAL_DIM);
+rect(11, 24, 10, 1, TEAL_DIM);
+
+// Liquid gradient - darker at bottom
+rect(9, 21, 14, 2, TEAL_DARK);
+rect(10, 23, 12, 1, TEAL_DARK);
+
+// Liquid highlights (lighter streaks)
+rect(11, 17, 2, 1, TEAL);
+rect(13, 18, 3, 1, TEAL);
+rect(10, 19, 2, 1, DEEP_TEAL);
+
+// Liquid surface shimmer
+px(10, 16, TEAL); px(11, 16, TEAL_BRIGHT); px(12, 16, TEAL);
+px(15, 16, DEEP_TEAL); px(16, 16, TEAL); px(17, 16, DEEP_TEAL);
+
+// === BUBBLES ===
+px(12, 19, TEAL_BRIGHT);
+px(15, 20, TEAL_BRIGHT);
+px(18, 18, TEAL_BRIGHT);
+px(11, 21, TEAL_BRIGHT);
+px(17, 22, TEAL_BRIGHT);
+px(13, 15, TEAL_BRIGHT);  // Bubble above liquid
+px(16, 14, TEAL_BRIGHT);  // Bubble above liquid
+px(14, 13, TEAL + '80');  // Faint bubble in air
+
+// === GLASS HIGHLIGHTS ===
+// Left edge reflection
+px(9, 14, GLASS_HIGHLIGHT); px(9, 15, GLASS_HIGHLIGHT);
+px(9, 16, GLASS_HIGHLIGHT); px(9, 17, GLASS_HIGHLIGHT);
+px(10, 12, GLASS_HIGHLIGHT);
+
+// Bright specular highlight
+px(10, 13, '#3A4A65'); px(10, 14, '#3A4A65');
+
+// Right edge (darker)
+px(22, 14, '#0A0914'); px(22, 15, '#0A0914');
+
+// === BOTTLE BASE ===
+rect(11, 25, 10, 1, GLASS_HIGHLIGHT);
+
+// === SPARKLE PARTICLES around bottle ===
+px(6, 10, TEAL + '60');
+px(25, 8, TEAL + '60');
+px(7, 20, AMBER + '40');
+px(24, 18, AMBER + '40');
+px(5, 15, '#FFFFFF40');
+px(26, 12, '#FFFFFF40');
+
+// Small stars
+px(6, 5, AMBER); px(25, 4, AMBER);
+px(4, 12, TEAL + '80');
+
+// Magical swirl hints near bottle
+px(8, 11, TEAL + '30');
+px(23, 13, TEAL + '30');
+
+// === "PicS" TEXT ===
+const textY = 27;
+const textStartX = 8;
+
+function drawPixelText(text, startX, startY) {
+  const font = {
+    'P': [[0,0],[1,0],[2,0],[3,0],[0,1],[4,1],[0,2],[4,2],[0,3],[1,3],[2,3],[3,3],[0,4],[0,5],[0,6]],
+    'i': [[0,0],[0,2],[0,3],[0,4],[0,5],[0,6]],
+    'c': [[1,0],[2,0],[3,0],[0,1],[0,2],[0,3],[0,4],[0,5],[1,6],[2,6],[3,6]],
+    'S': [[1,0],[2,0],[3,0],[0,1],[0,2],[1,3],[2,3],[3,3],[4,4],[4,5],[0,6],[1,6],[2,6],[3,6]],
+  };
+  let offX = startX;
+  for (const ch of text) {
+    const color = ch === 'S' ? AMBER : TEAL;
+    const letter = font[ch];
+    if (letter) {
+      letter.forEach(([lx, ly]) => px(offX + lx, startY + ly, color));
+      const maxX = Math.max(...letter.map(p => p[0]));
+      offX += maxX + 3;
+    }
+  }
+}
+
+drawPixelText('PicS', textStartX, textY);
+
+// Label on bottle
+// Small "clean" sparkle icon on bottle body
+px(15, 12, AMBER); px(16, 11, AMBER); px(17, 12, AMBER); px(16, 13, AMBER);
+px(16, 12, '#FFFFFF');
+
+</script>
+<br><button onclick="savePNG()" style="padding:12px 24px;font-size:16px;background:#5DE6C8;color:#12101F;border:none;border-radius:8px;cursor:pointer;font-weight:bold;">💾 Save as PNG</button><script>function savePNG(){var c=document.querySelector("canvas");var a=document.createElement("a");a.download="option-C.png";a.href=c.toDataURL("image/png");a.click();}</script></body>
+</html>

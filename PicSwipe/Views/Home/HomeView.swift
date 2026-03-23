@@ -23,7 +23,7 @@ struct HomeView: View {
                 VStack(spacing: Spacing.md) {
                     heroSection
                     limitedAccessBanner
-                    storageCapsule
+                    hpBarSection
                     startCleaningCard
                     quickFilterSection
                     dataCardRow
@@ -44,40 +44,41 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - 品牌英雄区
+    // MARK: - 品牌英雄区（像素风格）
 
     private var heroSection: some View {
         ZStack {
             // 背景渐变
             LinearGradient(
                 colors: [
-                    Color.brandPrimary.opacity(0.15),
-                    Color.brandSecondary.opacity(0.08)
+                    Color.brandPrimary.opacity(0.12),
+                    Color.brandSecondary.opacity(0.06)
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
             .clipShape(RoundedRectangle(cornerRadius: CornerRadius.hero))
-
-            // 装饰性辐射光晕
-            RadialGradient(
-                colors: [Color.brandPrimary.opacity(0.25), .clear],
-                center: .center,
-                startRadius: 10,
-                endRadius: 80
+            .overlay(
+                RoundedRectangle(cornerRadius: CornerRadius.hero)
+                    .stroke(Color.brandPrimary.opacity(0.2), lineWidth: 1)
             )
-            .frame(width: 160, height: 160)
-            .offset(x: 20, y: -20)
-            .blur(radius: 8)
 
             // 主内容
             VStack(spacing: Spacing.sm) {
-                Text("🌿")
-                    .font(.system(size: 56))
+                Text("⚔️")
+                    .font(.system(size: 48))
+
                 Text("PicS")
-                    .font(.system(size: 32, weight: .black, design: .rounded))
-                    .foregroundStyle(.white)
-                Text("滑一滑，轻松释放空间")
+                    .font(.pixel(20))
+                    .foregroundStyle(Color.brandPrimary)
+                    .shadow(color: Color.brandPrimary.opacity(0.5), radius: 6, y: 2)
+
+                // 像素星星装饰行
+                Text("✦ ✦ ✦ ✦ ✦")
+                    .font(.pixel(6))
+                    .foregroundStyle(Color.warningYellow.opacity(0.6))
+
+                Text("⚔️ 相册清理 · 地牢探索")
                     .font(.subheadline)
                     .foregroundStyle(Color.textSecondary)
             }
@@ -92,7 +93,6 @@ struct HomeView: View {
     private var limitedAccessBanner: some View {
         if photoService.isLimited {
             Button(action: {
-                // Open limited library picker
                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                    let rootVC = windowScene.windows.first?.rootViewController {
                     photoService.presentLimitedLibraryPicker(from: rootVC)
@@ -117,59 +117,33 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - 存储胶囊
+    // MARK: - HP BAR 存储区
 
-    private var storageCapsule: some View {
-        HStack(spacing: Spacing.md) {
-            storageLabel
-            storageMiniBar
-        }
-        .padding(.horizontal, Spacing.md)
-        .padding(.vertical, Spacing.sm)
-        .background(Color.white.opacity(0.1))
-        .clipShape(Capsule())
-    }
+    private var hpBarSection: some View {
+        DungeonCard {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                HStack {
+                    Text("HP BAR")
+                        .font(.pixel(8))
+                        .foregroundStyle(Color.brandPrimary)
+                    Spacer()
+                    Text("\(formatFileSize(vm.storageInfo.usedSpace)) / \(formatFileSize(vm.storageInfo.totalSpace))")
+                        .font(.caption)
+                        .foregroundStyle(Color.textSecondary)
+                        .monospacedDigit()
+                }
 
-    private var storageLabel: some View {
-        let used = vm.storageInfo.usedSpace
-        let total = vm.storageInfo.totalSpace
-        return Text("\(formatFileSize(used)) / \(formatFileSize(total))")
-            .font(.footnote)
-            .fontWeight(.medium)
-            .foregroundStyle(.white)
-            .lineLimit(1)
-    }
+                HPBar(usagePercent: vm.storageInfo.usagePercentage)
 
-    private var storageMiniBar: some View {
-        let pct = vm.storageInfo.usagePercentage
-        let barColor: Color = {
-            switch pct {
-            case ..<0.7: return .brandPrimary
-            case 0.7..<0.9:
-                // 线性插值：green → yellow
-                let t = (pct - 0.7) / 0.2
-                return Color(
-                    red: 0.263 + (0.957 - 0.263) * t,
-                    green: 0.914 + (0.773 - 0.914) * t,
-                    blue: 0.482 + (0.259 - 0.482) * t
-                )
-            default: return .warningYellow
-            }
-        }()
-
-        return GeometryReader { geo in
-            ZStack(alignment: .leading) {
-                Capsule()
-                    .fill(Color.white.opacity(0.15))
-                Capsule()
-                    .fill(barColor)
-                    .frame(width: geo.size.width * min(CGFloat(pct), 1.0))
+                let freeSpace = vm.storageInfo.totalSpace - vm.storageInfo.usedSpace
+                Text("剩余 \(formatFileSize(freeSpace)) 可用")
+                    .font(.caption)
+                    .foregroundStyle(Color.textSecondary)
             }
         }
-        .frame(height: 6)
     }
 
-    // MARK: - 开始清理卡片
+    // MARK: - 开始清理卡片（像素边框风格）
 
     private var startCleaningCard: some View {
         Button {
@@ -177,32 +151,32 @@ struct HomeView: View {
         } label: {
             HStack {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
-                    HStack(spacing: Spacing.xs) {
-                        Text("✨")
-                            .font(.title3)
-                        Text("开始清理")
-                            .font(.title3)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.black)
-                    }
+                    Text("▶ START")
+                        .font(.pixel(12))
+                        .foregroundStyle(Color.brandPrimary)
                     Text("随机抽取 \(vm.batchSize) 张\(vm.selectedMode == .photo ? "照片" : "视频")")
                         .font(.subheadline)
-                        .foregroundStyle(.black.opacity(0.65))
+                        .foregroundStyle(Color.textSecondary)
                 }
                 Spacer()
                 Image(systemName: "chevron.right")
                     .font(.title3.weight(.semibold))
-                    .foregroundStyle(.black.opacity(0.8))
+                    .foregroundStyle(Color.brandPrimary.opacity(0.8))
             }
             .padding(.horizontal, Spacing.md)
             .padding(.vertical, Spacing.lg)
-            .background(LinearGradient.brandGradient)
+            .background(Color.brandPrimary.opacity(0.08))
             .clipShape(RoundedRectangle(cornerRadius: 18))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18)
+                    .stroke(Color.brandPrimary, lineWidth: 1.5)
+            )
+            .shadow(color: Color.brandPrimary.opacity(0.2), radius: 8, y: 2)
         }
         .buttonStyle(.plain)
     }
 
-    // MARK: - 三联数据卡片
+    // MARK: - 三联数据卡片（边框式）
 
     private var dataCardRow: some View {
         HStack(spacing: Spacing.sm) {
@@ -260,20 +234,25 @@ struct HomeView: View {
         VStack(spacing: Spacing.xs) {
             Text(emoji)
                 .font(.title2)
-            Text(value)
-                .font(.subheadline)
-                .fontWeight(.bold)
-                .foregroundStyle(.white)
+            // 固定高度占位，确保所有卡片对齐
+            Text(value.isEmpty ? " " : value)
+                .font(.pixel(9))
+                .foregroundStyle(value.isEmpty ? .clear : .white)
                 .lineLimit(1)
-                .minimumScaleFactor(0.7)
+                .minimumScaleFactor(0.5)
+                .frame(height: 16)
             Text(label)
                 .font(.caption)
                 .foregroundStyle(Color.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, Spacing.md)
-        .background(Color.surfaceBackground)
+        .background(Color.brandPrimary.opacity(0.03))
         .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color.brandPrimary.opacity(0.15), lineWidth: 1)
+        )
     }
 
     // MARK: - 快捷筛选区
@@ -345,11 +324,11 @@ struct HomeView: View {
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
-            .background(Color.surfaceBackground)
+            .background(Color.brandPrimary.opacity(0.03))
             .clipShape(RoundedRectangle(cornerRadius: 20))
             .overlay(
                 RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                    .stroke(Color.brandPrimary.opacity(0.15), lineWidth: 1)
             )
         }
     }

@@ -1,9 +1,7 @@
 // PicSwipe/Views/Result/ResultView.swift
 import SwiftUI
 
-/// 清理结果页 — 展示成功动画与统计数据
-/// 照片模式：绿色勾号 + "已清理 N 张"
-/// 视频模式：红色删除图标 + "已清理 N 个视频"
+/// 清理结果页 — 像素 RPG 风格 QUEST COMPLETE
 struct ResultView: View {
     @Binding var path: NavigationPath
     @Binding var cleanSession: CleanSession?
@@ -24,8 +22,15 @@ struct ResultView: View {
             VStack(spacing: 0) {
                 Spacer()
 
+                // QUEST COMPLETE 像素装饰
+                questCompleteHeader
+                    .opacity(showIcon ? 1 : 0)
+                    .offset(y: showIcon ? 0 : -10)
+                    .animation(.easeOut(duration: 0.4).delay(0.1), value: showIcon)
+
                 // 成功图标
                 resultIcon
+                    .padding(.top, Spacing.lg)
                     .padding(.bottom, Spacing.xl)
 
                 // 主要统计数字
@@ -45,6 +50,18 @@ struct ResultView: View {
         .navigationBarBackButtonHidden(true)
         .onAppear {
             startAnimations()
+        }
+    }
+
+    // MARK: - QUEST COMPLETE 标题
+
+    private var questCompleteHeader: some View {
+        VStack(spacing: Spacing.xs) {
+            Text("✦ QUEST COMPLETE ✦")
+                .font(.pixel(10))
+                .foregroundStyle(Color.warningYellow)
+            Text("🏆")
+                .font(.system(size: 36))
         }
     }
 
@@ -80,25 +97,23 @@ struct ResultView: View {
         }
     }
 
-    // MARK: - 统计数字
+    // MARK: - 统计数字（像素字体）
 
     private var statsSection: some View {
         VStack(spacing: Spacing.md) {
-            // 张/个数
-            VStack(spacing: Spacing.xs) {
+            // 删除数量 — 垂直排列避免 baseline 错位
+            VStack(spacing: Spacing.sm) {
                 Text("已清理")
                     .font(.subheadline)
                     .foregroundStyle(Color.textSecondary)
 
-                HStack(alignment: .lastTextBaseline, spacing: 4) {
-                    Text("\(deletedCount)")
-                        .font(.system(size: 64, weight: .bold, design: .rounded))
-                        .foregroundStyle(isVideo ? Color.destructiveRed : Color.brandPrimary)
-                    Text(isVideo ? "个视频" : "张照片")
-                        .font(.title2)
-                        .fontWeight(.medium)
-                        .foregroundStyle(isVideo ? Color.destructiveRed : Color.brandPrimary)
-                }
+                Text("\(deletedCount)")
+                    .font(.pixel(36))
+                    .foregroundStyle(isVideo ? Color.destructiveRed : Color.brandPrimary)
+
+                Text(isVideo ? "个视频" : "张照片")
+                    .font(.headline)
+                    .foregroundStyle(isVideo ? Color.destructiveRed.opacity(0.8) : Color.brandPrimary.opacity(0.8))
             }
 
             // 分割线
@@ -106,52 +121,81 @@ struct ResultView: View {
                 .fill(Color.white.opacity(0.1))
                 .frame(width: 60, height: 1)
 
-            // 释放空间
-            VStack(spacing: Spacing.xs) {
-                Text("释放空间")
-                    .font(.caption)
-                    .foregroundStyle(Color.textSecondary)
-                Text(formatFileSize(freedSpace))
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.white)
-            }
+            // 释放空间 — 像素徽章
+            freedSpaceBadge
         }
     }
 
-    // MARK: - 操作按钮
+    /// 释放空间像素徽章
+    private var freedSpaceBadge: some View {
+        HStack(spacing: 6) {
+            Text("+")
+                .font(.pixel(10))
+                .foregroundStyle(Color.warningYellow)
+            Text(formatFileSize(freedSpace))
+                .font(.pixel(10))
+                .foregroundStyle(Color.warningYellow)
+            Text("FREED")
+                .font(.pixel(8))
+                .foregroundStyle(Color.warningYellow.opacity(0.8))
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .background(Color.warningYellow.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.warningYellow.opacity(0.3), lineWidth: 1)
+        )
+    }
+
+    // MARK: - 操作按钮（像素文案）
 
     private var buttonSection: some View {
         HStack(spacing: Spacing.md) {
-            // 回到首页
+            // 回到首页 → HOME
             Button {
                 goHome()
             } label: {
-                Text("回到首页")
-                    .font(.body)
-                    .fontWeight(.semibold)
+                Text("HOME")
+                    .font(.pixel(10))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(Color.white.opacity(0.1))
+                    .padding(.vertical, 16)
+                    .background(Color.white.opacity(0.08))
                     .clipShape(RoundedRectangle(cornerRadius: CornerRadius.button))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: CornerRadius.button)
+                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                    )
             }
 
-            // 再来一组
+            // 再来一组 → NEXT ▶
             Button {
                 startNewBatch()
             } label: {
-                Text("再来一组")
-                    .font(.body)
-                    .fontWeight(.bold)
-                    .foregroundStyle(isVideo ? .white : .black)
+                Text("NEXT ▶")
+                    .font(.pixel(10))
+                    .foregroundStyle(isVideo ? .white : Color.brandPrimary)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(isVideo
-                        ? AnyShapeStyle(Color.destructiveRed)
-                        : AnyShapeStyle(LinearGradient.brandGradient)
+                    .padding(.vertical, 16)
+                    .background(
+                        isVideo
+                            ? Color.destructiveRed.opacity(0.15)
+                            : Color.brandPrimary.opacity(0.1)
                     )
                     .clipShape(RoundedRectangle(cornerRadius: CornerRadius.button))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: CornerRadius.button)
+                            .stroke(
+                                isVideo ? Color.destructiveRed : Color.brandPrimary,
+                                lineWidth: 1.5
+                            )
+                    )
+                    .shadow(
+                        color: (isVideo ? Color.destructiveRed : Color.brandPrimary).opacity(0.3),
+                        radius: 8, y: 2
+                    )
             }
         }
     }

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>PicS Icon - Option B: Pixel Treasure Chest</title>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #000; }
+    canvas { image-rendering: pixelated; }
+  </style>
+</head>
+<body>
+<canvas id="c" width="1024" height="1024"></canvas>
+<script>
+const c = document.getElementById('c');
+const ctx = c.getContext('2d');
+const P = 32;
+
+const BG = '#12101F';
+const TEAL = '#5DE6C8';
+const DEEP_TEAL = '#3BAA92';
+const AMBER = '#F0C674';
+const RED = '#C0392B';
+const DARK1 = '#0A0914';
+const DARK2 = '#1A1730';
+const TEAL_DIM = '#2D7A68';
+const AMBER_BRIGHT = '#FFE090';
+const AMBER_DIM = '#A08040';
+const CHEST_DARK = '#1E5A4A';
+const CHEST_MID = '#2A7A66';
+const CHEST_LIGHT = '#3BAA92';
+
+function px(x, y, color) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x * P, y * P, P, P);
+}
+
+function rect(x, y, w, h, color) {
+  for (let i = x; i < x + w; i++)
+    for (let j = y; j < y + h; j++)
+      px(i, j, color);
+}
+
+// Fill background
+ctx.fillStyle = BG;
+ctx.fillRect(0, 0, 1024, 1024);
+
+// Golden glow from chest opening
+const grad = ctx.createRadialGradient(512, 380, 30, 512, 450, 350);
+grad.addColorStop(0, 'rgba(240, 198, 116, 0.15)');
+grad.addColorStop(0.5, 'rgba(240, 198, 116, 0.05)');
+grad.addColorStop(1, 'rgba(0,0,0,0)');
+ctx.fillStyle = grad;
+ctx.fillRect(0, 0, 1024, 1024);
+
+// Light rays going up from chest opening
+const rays = [
+  [14, 8, AMBER + '15'], [15, 6, AMBER + '10'], [16, 4, AMBER + '08'],
+  [17, 7, AMBER + '12'], [18, 5, AMBER + '08'],
+  [13, 9, AMBER + '10'], [19, 9, AMBER + '10'],
+  [15, 3, AMBER + '05'], [17, 3, AMBER + '05'],
+];
+
+// === CHEST LID (open, tilted back) ===
+// Lid back
+rect(8, 8, 16, 1, CHEST_DARK);
+rect(9, 7, 14, 1, CHEST_MID);
+rect(10, 6, 12, 1, CHEST_LIGHT);
+rect(11, 5, 10, 1, TEAL);
+// Lid top edge highlight
+rect(11, 5, 10, 1, TEAL);
+rect(10, 6, 1, 1, TEAL_DIM);
+rect(21, 6, 1, 1, TEAL_DIM);
+// Lid metal band
+rect(14, 6, 4, 1, AMBER_DIM);
+rect(14, 7, 4, 1, AMBER);
+rect(14, 8, 4, 1, AMBER_DIM);
+
+// === GOLDEN LIGHT spilling out ===
+// Light band at opening
+rect(8, 9, 16, 1, AMBER_BRIGHT);
+rect(9, 9, 14, 1, '#FFF4D0');
+// Light particles going up
+const sparkles = [
+  [11, 7, AMBER_BRIGHT], [12, 5, AMBER], [13, 3, AMBER_DIM],
+  [20, 7, AMBER_BRIGHT], [19, 4, AMBER], [18, 2, AMBER_DIM],
+  [15, 4, '#FFFFFF'], [16, 2, '#FFFFFF'],
+  [14, 6, AMBER_BRIGHT], [17, 5, AMBER_BRIGHT],
+  [10, 4, AMBER + '80'], [22, 5, AMBER + '80'],
+  [16, 1, AMBER + '40'],
+  // Photo icons coming out of chest
+  [13, 5, '#FFFFFF'], [13, 4, '#FFFFFF'], [14, 4, '#FFFFFF'], [14, 5, '#FFFFFF'],
+  [18, 6, '#FFFFFF'], [18, 5, '#FFFFFF'], [19, 5, '#FFFFFF'], [19, 6, '#FFFFFF'],
+];
+sparkles.forEach(([x, y, col]) => px(x, y, col));
+
+// Mini photo icons floating up
+// Photo 1 (left)
+rect(12, 3, 3, 3, '#E8E8E8');
+rect(13, 4, 1, 1, TEAL_DIM);
+
+// Photo 2 (right)
+rect(18, 4, 3, 3, '#E8E8E8');
+rect(19, 5, 1, 1, TEAL_DIM);
+
+// === CHEST BODY ===
+// Main body
+rect(7, 10, 18, 8, CHEST_MID);
+// Darker bottom
+rect(7, 16, 18, 2, CHEST_DARK);
+// Side shading
+rect(7, 10, 1, 8, CHEST_DARK);
+rect(24, 10, 1, 8, CHEST_DARK);
+// Top rim
+rect(7, 10, 18, 1, CHEST_LIGHT);
+// Center lock/clasp
+rect(15, 10, 2, 2, AMBER);
+rect(15, 12, 2, 1, AMBER_DIM);
+// Metal bands horizontal
+rect(7, 13, 18, 1, AMBER_DIM);
+rect(8, 13, 16, 1, AMBER);
+// Corner rivets
+px(8, 11, AMBER); px(23, 11, AMBER);
+px(8, 15, AMBER); px(23, 15, AMBER);
+// Chest shadow
+rect(7, 18, 18, 1, DARK1);
+rect(8, 19, 16, 1, DARK1 + '80');
+
+// Extra sparkle stars
+px(6, 3, TEAL); px(25, 2, TEAL);
+px(5, 8, AMBER + '60'); px(26, 7, AMBER + '60');
+px(16, 0, '#FFFFFF');
+
+// === "PicS" TEXT ===
+const textY = 22;
+const textStartX = 8;
+
+function drawPixelText(text, startX, startY) {
+  const font = {
+    'P': [[0,0],[1,0],[2,0],[3,0],[0,1],[4,1],[0,2],[4,2],[0,3],[1,3],[2,3],[3,3],[0,4],[0,5],[0,6]],
+    'i': [[0,0],[0,2],[0,3],[0,4],[0,5],[0,6]],
+    'c': [[1,0],[2,0],[3,0],[0,1],[0,2],[0,3],[0,4],[0,5],[1,6],[2,6],[3,6]],
+    'S': [[1,0],[2,0],[3,0],[0,1],[0,2],[1,3],[2,3],[3,3],[4,4],[4,5],[0,6],[1,6],[2,6],[3,6]],
+  };
+  let offX = startX;
+  for (const ch of text) {
+    const color = ch === 'S' ? AMBER : TEAL;
+    const letter = font[ch];
+    if (letter) {
+      letter.forEach(([lx, ly]) => px(offX + lx, startY + ly, color));
+      const maxX = Math.max(...letter.map(p => p[0]));
+      offX += maxX + 3;
+    }
+  }
+}
+
+drawPixelText('PicS', textStartX, textY);
+
+</script>
+<br><button onclick="savePNG()" style="padding:12px 24px;font-size:16px;background:#5DE6C8;color:#12101F;border:none;border-radius:8px;cursor:pointer;font-weight:bold;">💾 Save as PNG</button><script>function savePNG(){var c=document.querySelector("canvas");var a=document.createElement("a");a.download="option-B.png";a.href=c.toDataURL("image/png");a.click();}</script></body>
+</html>

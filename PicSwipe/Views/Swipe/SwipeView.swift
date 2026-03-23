@@ -176,16 +176,21 @@ struct SwipeView: View {
 
     private var topBar: some View {
         HStack {
-            // 返回按钮
+            // 返回按钮 → ← ESC
             Button {
                 path.removeLast()
             } label: {
-                Image(systemName: "chevron.left")
+                Text("← ESC")
+                    .font(.pixel(8))
                     .foregroundStyle(.white)
-                    .font(.body.weight(.medium))
-                    .padding(8)
-                    .background(.black.opacity(0.3))
-                    .clipShape(Circle())
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 8)
+                    .background(.black.opacity(0.4))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                    )
             }
 
             Spacer()
@@ -196,7 +201,7 @@ struct SwipeView: View {
                     Image(systemName: "trash")
                         .font(.caption)
                     Text("\(vm.markedCount)")
-                        .font(.subheadline.weight(.semibold))
+                        .font(.pixel(9))
                 }
                 .foregroundStyle(.white)
                 .padding(.horizontal, Spacing.sm + 2)
@@ -207,10 +212,10 @@ struct SwipeView: View {
 
             Spacer()
 
-            // 进度文字
+            // 进度文字（像素字体）
             Text("\(vm.currentIndex + 1)/\(vm.totalCount)")
+                .font(.pixel(9))
                 .foregroundStyle(Color.textSecondary)
-                .font(.subheadline.weight(.medium))
                 .monospacedDigit()
         }
         .padding(.horizontal, Spacing.pagePadding)
@@ -246,16 +251,15 @@ struct SwipeView: View {
     // MARK: - 底部进度条
 
     private func progressBar(screenWidth: CGFloat) -> some View {
-        GeometryReader { _ in
-            let progress = vm.totalCount > 0
-                ? CGFloat(vm.currentIndex + 1) / CGFloat(vm.totalCount)
-                : 0
-            RoundedRectangle(cornerRadius: CornerRadius.progressBar)
-                .fill(Color.brandPrimary)
-                .frame(width: screenWidth * progress, height: 3)
+        // 像素分段进度条
+        HStack(spacing: 2) {
+            ForEach(0..<min(vm.totalCount, 50), id: \.self) { index in
+                RoundedRectangle(cornerRadius: 1)
+                    .fill(index < vm.currentIndex + 1 ? Color.brandPrimary : Color.white.opacity(0.1))
+                    .frame(height: 4)
+            }
         }
-        .frame(height: 3)
-        .background(Color.white.opacity(0.1))
+        .padding(.horizontal, Spacing.pagePadding)
         .padding(.bottom, Spacing.xl)
     }
 

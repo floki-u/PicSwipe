@@ -1,33 +1,53 @@
 // PicSwipe/Views/DesignSystem.swift
 import SwiftUI
 
-// MARK: - 品牌色
+// MARK: - 品牌色（Dungeon Pixel 主题）
 
 extension Color {
-    /// 品牌主色 #43e97b
-    static let brandPrimary = Color(red: 0.263, green: 0.914, blue: 0.482)
-    /// 品牌辅色 #38f9d7
-    static let brandSecondary = Color(red: 0.220, green: 0.976, blue: 0.843)
-    /// 删除/警告红 #FF453A
-    static let destructiveRed = Color(red: 1.0, green: 0.271, blue: 0.227)
-    /// 存储警告黄 #F4C542
-    static let warningYellow = Color(red: 0.957, green: 0.773, blue: 0.259)
-    /// 深色背景 #111111
-    static let appBackground = Color(red: 0.067, green: 0.067, blue: 0.067)
+    /// 品牌主色 — 柔青绿 #5DE6C8
+    static let brandPrimary = Color(red: 0.365, green: 0.902, blue: 0.784)
+    /// 品牌辅色 — 深青 #3BAA92
+    static let brandSecondary = Color(red: 0.231, green: 0.667, blue: 0.573)
+    /// 删除/警告红 — 深红 #C0392B
+    static let destructiveRed = Color(red: 0.753, green: 0.224, blue: 0.169)
+    /// 存储警告/XP 琥珀 #F0C674
+    static let warningYellow = Color(red: 0.941, green: 0.776, blue: 0.455)
+    /// 深藏青背景 #12101F
+    static let appBackground = Color(red: 0.071, green: 0.063, blue: 0.122)
     /// 卡片/区块背景
-    static let surfaceBackground = Color.white.opacity(0.06)
-    /// 次要文字 #888888
-    static let textSecondary = Color(red: 0.533, green: 0.533, blue: 0.533)
-    /// 辅助文字 #555555
-    static let textMuted = Color(red: 0.333, green: 0.333, blue: 0.333)
+    static let surfaceBackground = Color.white.opacity(0.05)
+    /// 次要文字 — 偏蓝灰 #7A7A8E
+    static let textSecondary = Color(red: 0.478, green: 0.478, blue: 0.557)
+    /// 辅助文字 — 偏蓝灰 #4A4A5E
+    static let textMuted = Color(red: 0.290, green: 0.290, blue: 0.369)
 }
 
-// MARK: - 品牌渐变
+// MARK: - 像素字体
+
+extension Font {
+    /// 像素字体 — 用于标题、按钮标签、数字等 RPG 元素
+    /// Press Start 2P 不支持中文，中文内容请使用系统字体
+    static func pixel(_ size: CGFloat) -> Font {
+        .custom("PressStart2P-Regular", size: size)
+    }
+}
+
+// MARK: - 品牌渐变（Dungeon 青绿→深青）
 
 extension LinearGradient {
-    /// 品牌主渐变（135°）
+    /// 品牌主渐变（135°）— 青绿→深青
     static let brandGradient = LinearGradient(
         colors: [.brandPrimary, .brandSecondary],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+
+    /// 删除红渐变 — #C0392B → #96281B
+    static let destructiveGradient = LinearGradient(
+        colors: [
+            Color(red: 0.753, green: 0.224, blue: 0.169),
+            Color(red: 0.588, green: 0.157, blue: 0.106)
+        ],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
@@ -58,7 +78,7 @@ enum CornerRadius {
 
 // MARK: - 共享视图组件
 
-/// 品牌渐变主按钮
+/// 品牌主按钮 — 地牢边框发光风格
 struct PrimaryButton: View {
     let title: String
     let action: () -> Void
@@ -66,18 +86,22 @@ struct PrimaryButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.body)
-                .fontWeight(.bold)
-                .foregroundStyle(.black)
+                .font(.pixel(10))
+                .foregroundStyle(Color.brandPrimary)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(LinearGradient.brandGradient)
+                .padding(.vertical, 16)
+                .background(Color.brandPrimary.opacity(0.1))
                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.button))
+                .overlay(
+                    RoundedRectangle(cornerRadius: CornerRadius.button)
+                        .stroke(Color.brandPrimary, lineWidth: 1.5)
+                )
+                .shadow(color: Color.brandPrimary.opacity(0.3), radius: 8, y: 2)
         }
     }
 }
 
-/// 红色删除按钮
+/// 红色删除按钮 — 地牢边框发光风格
 struct DestructiveButton: View {
     let title: String
     let action: () -> Void
@@ -90,13 +114,37 @@ struct DestructiveButton: View {
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(Color.destructiveRed)
+                .background(LinearGradient.destructiveGradient)
                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.button))
+                .overlay(
+                    RoundedRectangle(cornerRadius: CornerRadius.button)
+                        .stroke(Color.destructiveRed.opacity(0.6), lineWidth: 1)
+                )
         }
     }
 }
 
-/// 卡片容器
+/// 地牢风格卡片容器 — 边框式代替填充式
+struct DungeonCard<Content: View>: View {
+    let content: () -> Content
+
+    init(@ViewBuilder content: @escaping () -> Content) {
+        self.content = content
+    }
+
+    var body: some View {
+        content()
+            .padding(Spacing.md)
+            .background(Color.brandPrimary.opacity(0.03))
+            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.card))
+            .overlay(
+                RoundedRectangle(cornerRadius: CornerRadius.card)
+                    .stroke(Color.brandPrimary.opacity(0.2), lineWidth: 1)
+            )
+    }
+}
+
+/// 原有卡片容器（兼容用）
 struct CardContainer<Content: View>: View {
     let content: () -> Content
 
@@ -107,8 +155,46 @@ struct CardContainer<Content: View>: View {
     var body: some View {
         content()
             .padding(Spacing.md)
-            .background(Color.surfaceBackground)
+            .background(Color.brandPrimary.opacity(0.03))
             .clipShape(RoundedRectangle(cornerRadius: CornerRadius.card))
+            .overlay(
+                RoundedRectangle(cornerRadius: CornerRadius.card)
+                    .stroke(Color.brandPrimary.opacity(0.2), lineWidth: 1)
+            )
+    }
+}
+
+/// RPG 风格分段 HP 条 — 替换连续进度条
+struct HPBar: View {
+    let usagePercent: Double
+    let segmentCount: Int
+
+    init(usagePercent: Double, segmentCount: Int = 10) {
+        self.usagePercent = usagePercent
+        self.segmentCount = segmentCount
+    }
+
+    /// 根据使用百分比返回颜色
+    private var barColor: Color {
+        let remaining = 1.0 - usagePercent
+        switch remaining {
+        case 0.3...: return .brandPrimary
+        case 0.1..<0.3: return .warningYellow
+        default: return .destructiveRed
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 3) {
+            ForEach(0..<segmentCount, id: \.self) { index in
+                let threshold = Double(index) / Double(segmentCount)
+                let isFilled = usagePercent > threshold
+
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(isFilled ? barColor : Color.white.opacity(0.1))
+                    .frame(height: 14)
+            }
+        }
     }
 }
 

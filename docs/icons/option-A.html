@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>PicS Icon - Option A: Pixel Sword + Photo Frame</title>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #000; }
+    canvas { image-rendering: pixelated; }
+  </style>
+</head>
+<body>
+<canvas id="c" width="1024" height="1024"></canvas>
+<script>
+const c = document.getElementById('c');
+const ctx = c.getContext('2d');
+const P = 32; // pixel size
+
+// Colors
+const BG = '#12101F';
+const TEAL = '#5DE6C8';
+const DEEP_TEAL = '#3BAA92';
+const AMBER = '#F0C674';
+const RED = '#C0392B';
+const DARK1 = '#0A0914';
+const DARK2 = '#1A1730';
+const WHITE = '#E8E8E8';
+const TEAL_DIM = '#2D7A68';
+const AMBER_DIM = '#A08040';
+
+function px(x, y, color) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x * P, y * P, P, P);
+}
+
+function rect(x, y, w, h, color) {
+  for (let i = x; i < x + w; i++)
+    for (let j = y; j < y + h; j++)
+      px(i, j, color);
+}
+
+// Fill background
+ctx.fillStyle = BG;
+ctx.fillRect(0, 0, 1024, 1024);
+
+// Subtle radial glow in center
+const grad = ctx.createRadialGradient(512, 420, 50, 512, 420, 400);
+grad.addColorStop(0, 'rgba(93, 230, 200, 0.08)');
+grad.addColorStop(1, 'rgba(0,0,0,0)');
+ctx.fillStyle = grad;
+ctx.fillRect(0, 0, 1024, 1024);
+
+// === PHOTO FRAME (behind sword) ===
+// Outer frame
+rect(9, 6, 14, 18, DEEP_TEAL);
+// Inner dark (photo area)
+rect(10, 7, 12, 16, DARK1);
+// Photo "image" hint - mountain scene
+rect(10, 15, 12, 5, '#1A3040');
+// Small mountain
+px(13, 17, '#2A5060'); px(14, 16, '#2A5060'); px(15, 17, '#2A5060');
+px(17, 18, '#2A5060'); px(18, 17, '#2A5060'); px(19, 18, '#2A5060');
+// Sun in photo
+px(12, 9, AMBER_DIM); px(13, 9, AMBER_DIM); px(12, 10, AMBER_DIM); px(13, 10, AMBER_DIM);
+// Frame corner accents
+px(9, 6, TEAL); px(22, 6, TEAL); px(9, 23, TEAL); px(22, 23, TEAL);
+
+// === SWORD (diagonal, over the frame) ===
+// Sword blade - going from top-right to bottom-left diagonal
+// Blade (main line)
+const swordPixels = [
+  // Pommel (bottom-left)
+  [8, 23, AMBER], [9, 22, AMBER], [7, 22, AMBER],
+  // Grip
+  [9, 21, AMBER_DIM], [10, 20, AMBER_DIM], [10, 19, '#8B6914'],
+  // Guard (crosspiece)
+  [9, 18, TEAL], [10, 18, TEAL], [11, 18, TEAL], [12, 18, TEAL], [13, 18, TEAL],
+  [9, 17, DEEP_TEAL], [13, 17, DEEP_TEAL],
+  // Blade
+  [11, 17, TEAL], [12, 16, TEAL], [12, 15, TEAL],
+  [13, 14, TEAL], [13, 13, TEAL], [14, 12, TEAL],
+  [14, 11, TEAL], [15, 10, TEAL], [15, 9, TEAL],
+  [16, 8, TEAL], [16, 7, TEAL], [17, 6, TEAL],
+  [17, 5, TEAL], [18, 4, TEAL],
+  // Blade edge highlights
+  [12, 17, '#8CFCE0'], [13, 15, '#8CFCE0'], [14, 13, '#8CFCE0'],
+  [15, 11, '#8CFCE0'], [16, 9, '#8CFCE0'], [17, 7, '#8CFCE0'],
+  // Blade tip
+  [18, 3, '#8CFCE0'], [19, 3, TEAL],
+  // Blade shadow side
+  [11, 16, TEAL_DIM], [12, 14, TEAL_DIM], [13, 12, TEAL_DIM],
+  [14, 10, TEAL_DIM], [15, 8, TEAL_DIM], [16, 6, TEAL_DIM],
+];
+swordPixels.forEach(([x, y, col]) => px(x, y, col));
+
+// === SECOND SWORD (mirrored, crossing) ===
+const sword2 = [
+  // Pommel (bottom-right)
+  [24, 23, AMBER], [23, 22, AMBER], [25, 22, AMBER],
+  // Grip
+  [23, 21, AMBER_DIM], [22, 20, AMBER_DIM], [22, 19, '#8B6914'],
+  // Guard
+  [19, 18, TEAL], [20, 18, TEAL], [21, 18, TEAL], [22, 18, TEAL], [23, 18, TEAL],
+  [19, 17, DEEP_TEAL], [23, 17, DEEP_TEAL],
+  // Blade
+  [21, 17, TEAL], [20, 16, TEAL], [20, 15, TEAL],
+  [19, 14, TEAL], [19, 13, TEAL], [18, 12, TEAL],
+  [18, 11, TEAL], [17, 10, TEAL], [17, 9, TEAL],
+  [16, 8, TEAL], [16, 7, TEAL], [15, 6, TEAL],
+  [15, 5, TEAL], [14, 4, TEAL],
+  // Edge highlights
+  [20, 17, '#8CFCE0'], [19, 15, '#8CFCE0'], [18, 13, '#8CFCE0'],
+  [17, 11, '#8CFCE0'], [16, 9, '#8CFCE0'], [15, 7, '#8CFCE0'],
+  // Tip
+  [14, 3, '#8CFCE0'], [13, 3, TEAL],
+  // Shadow side
+  [21, 16, TEAL_DIM], [20, 14, TEAL_DIM], [19, 12, TEAL_DIM],
+  [18, 10, TEAL_DIM], [17, 8, TEAL_DIM], [16, 6, TEAL_DIM],
+];
+sword2.forEach(([x, y, col]) => px(x, y, col));
+
+// Sparkle at crossing point
+px(16, 8, '#FFFFFF'); px(17, 8, '#FFFFFF');
+px(16, 7, AMBER); px(17, 7, AMBER);
+
+// Small sparkles around
+px(7, 5, AMBER); px(25, 5, AMBER);
+px(6, 10, '#5DE6C880'); px(26, 14, '#5DE6C880');
+
+// === "PicS" TEXT ===
+// Pixel font - each letter on a 5x7 grid, at bottom
+const textY = 26;
+const textStartX = 8;
+
+// P
+const P_letter = [
+  [0,0],[1,0],[2,0],[3,0],
+  [0,1],[4,1],
+  [0,2],[4,2],
+  [0,3],[1,3],[2,3],[3,3],
+  [0,4],
+  [0,5],
+  [0,6],
+];
+// i
+const i_letter = [
+  [0,0],
+  [0,2],[0,3],[0,4],[0,5],[0,6],
+];
+// c
+const c_letter = [
+  [1,0],[2,0],[3,0],
+  [0,1],
+  [0,2],
+  [0,3],
+  [0,4],
+  [0,5],
+  [1,6],[2,6],[3,6],
+];
+// S
+const S_letter = [
+  [1,0],[2,0],[3,0],
+  [0,1],
+  [0,2],
+  [1,3],[2,3],[3,3],
+  [4,4],
+  [4,5],
+  [0,6],[1,6],[2,6],[3,6],
+];
+
+function drawLetter(pixels, offX, offY, color) {
+  pixels.forEach(([lx, ly]) => px(offX + lx, offY + ly, color));
+}
+
+drawLetter(P_letter, textStartX, textY, TEAL);
+drawLetter(i_letter, textStartX + 6, textY, TEAL);
+drawLetter(c_letter, textStartX + 8, textY, TEAL);
+drawLetter(S_letter, textStartX + 13, textY, AMBER);
+
+</script>
+<br><button onclick="savePNG()" style="padding:12px 24px;font-size:16px;background:#5DE6C8;color:#12101F;border:none;border-radius:8px;cursor:pointer;font-weight:bold;">💾 Save as PNG</button><script>function savePNG(){var c=document.querySelector("canvas");var a=document.createElement("a");a.download="option-A.png";a.href=c.toDataURL("image/png");a.click();}</script></body>
+</html>

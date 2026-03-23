@@ -96,15 +96,13 @@ struct TutorialView: View {
             VStack(spacing: Spacing.sm) {
                 HStack(spacing: Spacing.sm) {
                     Text(page.symbol)
-                        .font(.title)
-                        .fontWeight(.bold)
+                        .font(.pixel(10))
                         .foregroundStyle(.white)
                     Text("=")
-                        .font(.title)
+                        .font(.pixel(10))
                         .foregroundStyle(Color.textSecondary)
                     Text(page.action)
-                        .font(.title)
-                        .fontWeight(.bold)
+                        .font(.pixel(10))
                         .foregroundStyle(page.markColor)
                     Text(page.mark)
                         .font(.title)

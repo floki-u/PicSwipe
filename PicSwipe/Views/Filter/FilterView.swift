@@ -324,8 +324,7 @@ struct FilterView: View {
                         .scaleEffect(0.7)
                 } else {
                     Text("\(vm.matchingCount)")
-                        .font(.subheadline)
-                        .fontWeight(.bold)
+                        .font(.pixel(10))
                         .foregroundStyle(Color.brandPrimary)
                 }
                 Text(mode == .photo ? "张照片" : "个视频")

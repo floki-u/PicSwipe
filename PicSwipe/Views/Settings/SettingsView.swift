@@ -3,7 +3,7 @@ import SwiftUI
 import SwiftData
 import Photos
 
-/// 设置页 — 卡片式布局
+/// 设置页 — 像素 RPG 卡片式布局
 struct SettingsView: View {
     @Binding var path: NavigationPath
 
@@ -24,9 +24,25 @@ struct SettingsView: View {
 
             ScrollView {
                 VStack(spacing: Spacing.md) {
+                    // 页面标题
+                    Text("SETTINGS")
+                        .font(.pixel(14))
+                        .foregroundStyle(Color.brandPrimary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, Spacing.xs)
+
                     brandCard
+
+                    // GENERAL 分组
+                    sectionLabel("GENERAL")
                     batchSizeCard
+
+                    // STATS 分组
+                    sectionLabel("STATS")
                     historyCard
+
+                    // ABOUT 分组
+                    sectionLabel("ABOUT")
                     otherCard
                 }
                 .padding(.horizontal, Spacing.pagePadding)
@@ -52,7 +68,6 @@ struct SettingsView: View {
         .gesture(
             DragGesture(minimumDistance: 20)
                 .onEnded { value in
-                    // 左滑返回：起始在左侧 1/4 区域，向右滑超过 80pt
                     if value.startLocation.x < 60 && value.translation.width > 80 {
                         path.removeLast()
                     }
@@ -66,27 +81,39 @@ struct SettingsView: View {
         }
     }
 
+    /// 像素标签分组标题
+    private func sectionLabel(_ text: String) -> some View {
+        Text(text)
+            .font(.pixel(8))
+            .foregroundStyle(Color.textMuted)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, Spacing.xs)
+    }
+
     // MARK: - 品牌卡片
 
     private var brandCard: some View {
-        CardContainer {
+        DungeonCard {
             HStack(spacing: Spacing.md) {
-                // 应用图标占位
+                // 应用图标
                 ZStack {
-                    LinearGradient.brandGradient
-                    Text("🌿")
+                    Color.brandPrimary.opacity(0.15)
+                    Text("⚔️")
                         .font(.title)
                 }
                 .frame(width: 56, height: 56)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.brandPrimary.opacity(0.3), lineWidth: 1)
+                )
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("PicS")
-                        .font(.headline)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.white)
+                        .font(.pixel(12))
+                        .foregroundStyle(Color.brandPrimary)
 
-                    Text("版本    ")
+                    Text("V1.2.0 · Dungeon Edition")
                         .font(.caption)
                         .foregroundStyle(Color.textSecondary)
 
@@ -126,7 +153,7 @@ struct SettingsView: View {
     // MARK: - 每组数量卡片
 
     private var batchSizeCard: some View {
-        CardContainer {
+        DungeonCard {
             VStack(alignment: .leading, spacing: Spacing.md) {
                 Text("每组数量")
                     .font(.subheadline)
@@ -153,28 +180,30 @@ struct SettingsView: View {
             selectBatchSize(size)
         } label: {
             Text("\(size)")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-                .foregroundStyle(isSelected ? .black : Color.textSecondary)
+                .font(.pixel(9))
+                .foregroundStyle(isSelected ? Color.brandPrimary : Color.textSecondary)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
                 .background(
-                    Group {
-                        if isSelected {
-                            AnyView(LinearGradient.brandGradient)
-                        } else {
-                            AnyView(Color.white.opacity(0.08))
-                        }
-                    }
+                    isSelected
+                        ? Color.brandPrimary.opacity(0.1)
+                        : Color.white.opacity(0.05)
                 )
                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.chip))
+                .overlay(
+                    RoundedRectangle(cornerRadius: CornerRadius.chip)
+                        .stroke(
+                            isSelected ? Color.brandPrimary : Color.white.opacity(0.1),
+                            lineWidth: isSelected ? 1.5 : 1
+                        )
+                )
         }
     }
 
     // MARK: - 清理历史卡片
 
     private var historyCard: some View {
-        CardContainer {
+        DungeonCard {
             VStack(alignment: .leading, spacing: Spacing.md) {
                 HStack {
                     Text("清理历史")
@@ -188,8 +217,7 @@ struct SettingsView: View {
                     // 删除张数
                     VStack(spacing: 4) {
                         Text("\(totalDeleted)")
-                            .font(.title2)
-                            .fontWeight(.bold)
+                            .font(.pixel(14))
                             .foregroundStyle(Color.brandPrimary)
                         Text("已删除张数")
                             .font(.caption2)
@@ -204,8 +232,7 @@ struct SettingsView: View {
                     // 释放空间
                     VStack(spacing: 4) {
                         Text(formatFileSize(totalFreed))
-                            .font(.title2)
-                            .fontWeight(.bold)
+                            .font(.pixel(10))
                             .foregroundStyle(Color.brandPrimary)
                         Text("已释放空间")
                             .font(.caption2)
@@ -220,7 +247,7 @@ struct SettingsView: View {
     // MARK: - 其他设置卡片
 
     private var otherCard: some View {
-        CardContainer {
+        DungeonCard {
             VStack(spacing: 0) {
                 settingsRow(emoji: "👆", title: "重播手势教程") {
                     replayTutorial()
@@ -234,7 +261,7 @@ struct SettingsView: View {
 
                 divider
 
-                settingsRow(emoji: "🌿", title: "隐私政策") {
+                settingsRow(emoji: "⚔️", title: "隐私政策") {
                     showPrivacyPolicy = true
                 }
             }
@@ -374,7 +401,6 @@ struct SettingsView: View {
     private func replayTutorial() {
         userSettings?.hasSeenTutorial = false
         try? modelContext.save()
-        // 清空导航栈回到首页，RootView 会检测到 hasSeenTutorial == false 并显示教程
         path = NavigationPath()
     }
 
