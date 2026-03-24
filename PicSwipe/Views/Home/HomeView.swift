@@ -103,7 +103,7 @@ struct HomeView: View {
                         .foregroundStyle(Color.warningYellow)
                     Text("你只授权了部分照片，点击管理权限")
                         .font(.caption)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.textPrimary)
                     Spacer()
                     Image(systemName: "chevron.right")
                         .font(.caption2)
@@ -237,7 +237,7 @@ struct HomeView: View {
             // 固定高度占位，确保所有卡片对齐
             Text(value.isEmpty ? " " : value)
                 .font(.pixel(9))
-                .foregroundStyle(value.isEmpty ? .clear : .white)
+                .foregroundStyle(value.isEmpty ? .clear : Color.textPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
                 .frame(height: 16)
@@ -247,11 +247,11 @@ struct HomeView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, Spacing.md)
-        .background(Color.brandPrimary.opacity(0.03))
+        .background(Color.cardGlowBackground)
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .overlay(
             RoundedRectangle(cornerRadius: 14)
-                .stroke(Color.brandPrimary.opacity(0.15), lineWidth: 1)
+                .stroke(Color.cardBorder, lineWidth: 1)
         )
     }
 
@@ -313,22 +313,22 @@ struct HomeView: View {
                     .font(.subheadline)
                 Text(label)
                     .font(.subheadline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.textPrimary)
                 Text(badge)
                     .font(.caption)
                     .foregroundStyle(Color.textSecondary)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(Color.white.opacity(0.1))
+                    .background(Color.fillTertiary)
                     .clipShape(Capsule())
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
-            .background(Color.brandPrimary.opacity(0.03))
+            .background(Color.cardGlowBackground)
             .clipShape(RoundedRectangle(cornerRadius: 20))
             .overlay(
                 RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color.brandPrimary.opacity(0.15), lineWidth: 1)
+                    .stroke(Color.cardBorder, lineWidth: 1)
             )
         }
     }

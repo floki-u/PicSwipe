@@ -21,7 +21,7 @@ struct PermissionView: View {
                     Text("需要相册权限")
                         .font(.title)
                         .fontWeight(.bold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.textPrimary)
 
                     Text("PicSwipe 需要访问你的照片库\n所有处理在本地完成，绝不上传")
                         .font(.subheadline)
@@ -90,7 +90,7 @@ struct PermissionView: View {
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.textPrimary)
                 Text(desc)
                     .font(.caption)
                     .foregroundStyle(Color.textSecondary)
