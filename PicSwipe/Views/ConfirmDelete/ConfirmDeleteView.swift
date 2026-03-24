@@ -71,7 +71,7 @@ struct ConfirmDeleteView: View {
             Text("这组全部保留！")
                 .font(.title)
                 .fontWeight(.bold)
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.textPrimary)
 
             Text(currentMode == .video ? "没有视频被删除" : "没有照片被删除")
                 .font(.body)
@@ -163,9 +163,9 @@ struct ConfirmDeleteView: View {
                     // 播放图标
                     Image(systemName: "play.fill")
                         .font(.caption)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.textOnMedia)
                         .padding(4)
-                        .background(.black.opacity(0.5))
+                        .background(Color.overlayScrim)
                         .clipShape(Circle())
                 )
 
@@ -174,7 +174,7 @@ struct ConfirmDeleteView: View {
                 if let date = asset.creationDate {
                     Text(date, style: .date)
                         .font(.subheadline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.textPrimary)
                 }
                 HStack(spacing: Spacing.sm) {
                     Text(formatFileSize(asset.fileSize))
@@ -201,10 +201,10 @@ struct ConfirmDeleteView: View {
                         .font(.caption)
                         .fontWeight(.semibold)
                 }
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.textPrimary)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
-                .background(.white.opacity(0.15))
+                .background(Color.fillSecondary)
                 .clipShape(Capsule())
             }
         }
@@ -315,19 +315,19 @@ struct ConfirmDeleteView: View {
                         if let date = asset.creationDate {
                             Text(date, style: .date)
                                 .font(.caption2)
-                                .foregroundStyle(.white.opacity(0.9))
+                                .foregroundStyle(Color.textOnMedia.opacity(0.9))
                         }
                         Text(formatFileSize(asset.fileSize))
                             .font(.caption)
                             .fontWeight(.medium)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color.textOnMedia)
                     }
                     Spacer()
                 }
                 .padding(12)
                 .background(
                     LinearGradient(
-                        colors: [.clear, .black.opacity(0.7)],
+                        colors: [.clear, Color.overlayHeavy],
                         startPoint: .top,
                         endPoint: .bottom
                     )
@@ -341,7 +341,7 @@ struct ConfirmDeleteView: View {
                 // 计数标签
                 Text("\(index + 1)/\(vm.markedAssets.count)")
                     .font(.pixel(7))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.textOnMedia)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(Color.destructiveRed)
@@ -360,10 +360,10 @@ struct ConfirmDeleteView: View {
                             .font(.caption)
                             .fontWeight(.semibold)
                     }
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.textOnMedia)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
-                    .background(.black.opacity(0.6))
+                    .background(Color.overlayHeavy)
                     .clipShape(Capsule())
                 }
             }
@@ -377,7 +377,7 @@ struct ConfirmDeleteView: View {
         HStack(spacing: 6) {
             ForEach(0..<vm.markedAssets.count, id: \.self) { index in
                 Circle()
-                    .fill(index == vm.currentPreviewIndex ? Color.destructiveRed : Color.white.opacity(0.3))
+                    .fill(index == vm.currentPreviewIndex ? Color.destructiveRed : Color.indicatorInactive)
                     .frame(width: 6, height: 6)
                     .animation(.easeInOut(duration: 0.2), value: vm.currentPreviewIndex)
             }

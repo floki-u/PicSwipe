@@ -118,7 +118,7 @@ struct ResultView: View {
 
             // 分割线
             Rectangle()
-                .fill(Color.white.opacity(0.1))
+                .fill(Color.borderSubtle)
                 .frame(width: 60, height: 1)
 
             // 释放空间 — 像素徽章
@@ -159,14 +159,14 @@ struct ResultView: View {
             } label: {
                 Text("HOME")
                     .font(.pixel(10))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.textPrimary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
-                    .background(Color.white.opacity(0.08))
+                    .background(Color.fillTertiary)
                     .clipShape(RoundedRectangle(cornerRadius: CornerRadius.button))
                     .overlay(
                         RoundedRectangle(cornerRadius: CornerRadius.button)
-                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                            .stroke(Color.borderMedium, lineWidth: 1)
                     )
             }
 

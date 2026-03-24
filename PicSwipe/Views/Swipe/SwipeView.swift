@@ -22,8 +22,6 @@ struct SwipeView: View {
     /// 防止触觉反馈在每帧重复触发
     @State private var hasTriggeredHaptic = false
 
-    @State private var isDirectDeleting = false
-
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -35,20 +33,6 @@ struct SwipeView: View {
                     emptyView
                 } else {
                     swipeContent(screenSize: geometry.size)
-                }
-
-                // 直接删除时的加载遮罩
-                if isDirectDeleting {
-                    Color.black.opacity(0.5)
-                        .ignoresSafeArea()
-                    VStack(spacing: Spacing.md) {
-                        ProgressView()
-                            .tint(Color.brandPrimary)
-                            .scaleEffect(1.5)
-                        Text("正在删除…")
-                            .foregroundStyle(Color.textSecondary)
-                            .font(.subheadline)
-                    }
                 }
             }
         }
@@ -99,7 +83,7 @@ struct SwipeView: View {
                 .foregroundStyle(Color.textMuted)
             Text("没有找到\(mode == .photo ? "照片" : "视频")")
                 .font(.title3)
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.textPrimary)
             Text("尝试调整筛选条件或检查相册权限")
                 .font(.subheadline)
                 .foregroundStyle(Color.textSecondary)
@@ -182,14 +166,14 @@ struct SwipeView: View {
             } label: {
                 Text("← ESC")
                     .font(.pixel(8))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.textOnMedia)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 8)
-                    .background(.black.opacity(0.4))
+                    .background(Color.overlayMedium)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                            .stroke(Color.borderMedium, lineWidth: 1)
                     )
             }
 
@@ -203,7 +187,7 @@ struct SwipeView: View {
                     Text("\(vm.markedCount)")
                         .font(.pixel(9))
                 }
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.textOnMedia)
                 .padding(.horizontal, Spacing.sm + 2)
                 .padding(.vertical, Spacing.xs + 2)
                 .background(Color.destructiveRed)
@@ -222,7 +206,7 @@ struct SwipeView: View {
         .padding(.top, Spacing.xl + 20)
         .background(
             LinearGradient(
-                colors: [.black.opacity(0.5), .clear],
+                colors: [Color.overlayScrim, .clear],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -255,7 +239,7 @@ struct SwipeView: View {
         HStack(spacing: 2) {
             ForEach(0..<min(vm.totalCount, 50), id: \.self) { index in
                 RoundedRectangle(cornerRadius: 1)
-                    .fill(index < vm.currentIndex + 1 ? Color.brandPrimary : Color.white.opacity(0.1))
+                    .fill(index < vm.currentIndex + 1 ? Color.brandPrimary : Color.fillTertiary)
                     .frame(height: 4)
             }
         }
@@ -368,7 +352,7 @@ struct SwipeView: View {
                 } label: {
                     Image(systemName: "trash")
                         .font(.title2)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.textOnMedia)
                         .frame(width: 52, height: 52)
                         .background(Color.destructiveRed)
                         .clipShape(Circle())
@@ -382,9 +366,9 @@ struct SwipeView: View {
                     } label: {
                         Image(systemName: "arrow.uturn.backward")
                             .font(.title3)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color.textOnMedia)
                             .frame(width: 44, height: 44)
-                            .background(Color.white.opacity(0.2))
+                            .background(Color.fillSecondary)
                             .clipShape(Circle())
                     }
                     .transition(.scale.combined(with: .opacity))
@@ -489,45 +473,9 @@ struct SwipeView: View {
 
     // MARK: - 完成处理
 
-    /// 滑动完成后的处理：首次走确认删除页，之后直接执行删除
+    /// 滑动完成后的处理：始终进入确认删除页，让用户预览、撤回后再确认
     private func handleSwipeFinished() {
-        let settings = statsService.getSettings(in: modelContext)
-        let markedAssets = vm.session?.markedAssets ?? []
-
-        if markedAssets.isEmpty {
-            // 没有标记删除的 → 走确认页（显示"全部保留"状态）
-            path.append(AppDestination.confirmDelete)
-        } else if !settings.hasConfirmedDeleteBefore {
-            // 首次删除 → 走确认页让用户了解流程
-            path.append(AppDestination.confirmDelete)
-        } else {
-            // 非首次 → 直接执行删除（仅系统弹窗）
-            Task { await performDirectDelete(markedAssets: markedAssets) }
-        }
-    }
-
-    /// 跳过确认页，直接调用系统删除
-    private func performDirectDelete(markedAssets: [AssetItem]) async {
-        isDirectDeleting = true
-        do {
-            let deletedCount = try await photoService.deleteAssets(markedAssets)
-            let freedSpace = markedAssets.reduce(Int64(0)) { $0 + $1.fileSize }
-            statsService.recordClean(
-                deletedCount: deletedCount,
-                freedSpace: freedSpace,
-                mode: mode,
-                in: modelContext
-            )
-            HapticService.deleteSuccess()
-            cleanSession = nil
-            isDirectDeleting = false
-            path.append(AppDestination.result(deletedCount: deletedCount, freedSpace: freedSpace, mode: mode))
-        } catch {
-            HapticService.deleteError()
-            isDirectDeleting = false
-            // 用户拒绝系统弹窗 → 回退到确认页让用户重新选择
-            path.append(AppDestination.confirmDelete)
-        }
+        path.append(AppDestination.confirmDelete)
     }
 
     // MARK: - 加载会话

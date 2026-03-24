@@ -67,7 +67,6 @@ struct RootView: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
         .task {
             checkOnboardingStatus()
         }

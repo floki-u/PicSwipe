@@ -60,11 +60,10 @@ struct SettingsView: View {
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.body.weight(.semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.textPrimary)
                 }
             }
         }
-        .toolbarColorScheme(.dark, for: .navigationBar)
         .gesture(
             DragGesture(minimumDistance: 20)
                 .onEnded { value in
@@ -158,7 +157,7 @@ struct SettingsView: View {
                 Text("每组数量")
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.textPrimary)
 
                 HStack(spacing: Spacing.sm) {
                     ForEach(batchOptions, id: \.self) { size in
@@ -187,13 +186,13 @@ struct SettingsView: View {
                 .background(
                     isSelected
                         ? Color.brandPrimary.opacity(0.1)
-                        : Color.white.opacity(0.05)
+                        : Color.fillSubtle
                 )
                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.chip))
                 .overlay(
                     RoundedRectangle(cornerRadius: CornerRadius.chip)
                         .stroke(
-                            isSelected ? Color.brandPrimary : Color.white.opacity(0.1),
+                            isSelected ? Color.brandPrimary : Color.borderSubtle,
                             lineWidth: isSelected ? 1.5 : 1
                         )
                 )
@@ -209,7 +208,7 @@ struct SettingsView: View {
                     Text("清理历史")
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.textPrimary)
                     Spacer()
                 }
 
@@ -226,7 +225,7 @@ struct SettingsView: View {
                     .frame(maxWidth: .infinity)
 
                     Rectangle()
-                        .fill(Color.white.opacity(0.1))
+                        .fill(Color.borderSubtle)
                         .frame(width: 1, height: 36)
 
                     // 释放空间
@@ -270,7 +269,7 @@ struct SettingsView: View {
 
     private var divider: some View {
         Rectangle()
-            .fill(Color.white.opacity(0.08))
+            .fill(Color.divider)
             .frame(height: 1)
             .padding(.horizontal, -Spacing.md)
     }
@@ -284,7 +283,7 @@ struct SettingsView: View {
 
                 Text(title)
                     .font(.body)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.textPrimary)
 
                 Spacer()
 
@@ -309,7 +308,7 @@ struct SettingsView: View {
                     VStack(alignment: .leading, spacing: Spacing.lg) {
                         Text("PicS 尊重您的隐私。以下是我们的隐私承诺：")
                             .font(.body)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color.textPrimary)
 
                         privacyItem(
                             icon: "shield.checkered",
@@ -356,7 +355,6 @@ struct SettingsView: View {
                     .foregroundStyle(Color.brandPrimary)
                 }
             }
-            .toolbarColorScheme(.dark, for: .navigationBar)
         }
         .presentationDetents([.large])
     }
@@ -372,7 +370,7 @@ struct SettingsView: View {
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.textPrimary)
                 Text(description)
                     .font(.caption)
                     .foregroundStyle(Color.textSecondary)

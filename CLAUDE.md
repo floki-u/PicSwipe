@@ -17,6 +17,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ✅ V1.1 细节打磨与体验优化已完成：`docs/superpowers/specs/2026-03-20-pics-v1.1-implementation.md`
 - ✅ V1.2 筛选系统 + 首页重设计：筛选清理、快捷芯片、色彩换肤
 - ✅ V1.2 Dungeon Pixel 全面像素化改造：Press Start 2P 字体、HP Bar、边框卡片、RPG 文案
+- ✅ V1.3 Light/Dark 自适应主题：23 个语义色 token、UIColor adaptive、确认删除页每次展示
 - ✅ 里程碑追踪：`docs/superpowers/plans/2026-03-20-pics-milestones.md`
 - ✅ 待优化与未来规划：`docs/superpowers/plans/2026-03-20-pics-backlog.md`
 - ⬜ V2.0 智能清理

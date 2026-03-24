@@ -42,7 +42,7 @@ struct FilterView: View {
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.body.weight(.semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.textPrimary)
                 }
             }
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -54,7 +54,6 @@ struct FilterView: View {
                 .foregroundStyle(Color.textSecondary)
             }
         }
-        .toolbarColorScheme(.dark, for: .navigationBar)
         .gesture(
             DragGesture(minimumDistance: 20)
                 .onEnded { value in
@@ -78,7 +77,7 @@ struct FilterView: View {
                 Text("📷 快捷筛选")
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.textPrimary)
                     .padding(.bottom, Spacing.sm)
 
                 // 仅截图
@@ -92,7 +91,7 @@ struct FilterView: View {
                     vm.updateMatchingCount(photoService: photoService)
                 }
 
-                Divider().background(Color.white.opacity(0.06))
+                Divider().background(Color.dividerLight)
 
                 // 大文件优先
                 filterToggleRow(
@@ -118,7 +117,7 @@ struct FilterView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.body)
-                    .foregroundStyle(enabled ? .white : Color.textMuted)
+                    .foregroundStyle(enabled ? Color.textPrimary : Color.textMuted)
                 Text(subtitle)
                     .font(.caption)
                     .foregroundStyle(Color.textSecondary)
@@ -157,7 +156,7 @@ struct FilterView: View {
                 Text("📅 时间范围")
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.textPrimary)
 
                 // 预设按钮
                 let presets: [TimePreset] = [.all, .oneYear, .twoYears, .threeYears, .custom]
@@ -183,7 +182,7 @@ struct FilterView: View {
                                 .background(
                                     vm.selectedTimePreset == preset
                                         ? Color.brandPrimary.opacity(0.15)
-                                        : Color.white.opacity(0.06)
+                                        : Color.fillSubtle
                                 )
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
                                 .overlay(
@@ -210,7 +209,6 @@ struct FilterView: View {
                             displayedComponents: .date
                         )
                         .datePickerStyle(.compact)
-                        .colorScheme(.dark)
                         .onChange(of: vm.customStartDate) { _, _ in
                             vm.updateMatchingCount(photoService: photoService)
                         }
@@ -232,7 +230,7 @@ struct FilterView: View {
                     Text("📁 相册选择")
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.textPrimary)
 
                     Spacer()
 
@@ -259,7 +257,7 @@ struct FilterView: View {
                 } else {
                     ForEach(Array(vm.albums.enumerated()), id: \.element.id) { index, album in
                         if index > 0 {
-                            Divider().background(Color.white.opacity(0.06))
+                            Divider().background(Color.dividerLight)
                         }
                         albumRow(album: album)
                     }
@@ -295,7 +293,7 @@ struct FilterView: View {
                 // 相册名
                 Text(album.title)
                     .font(.body)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.textPrimary)
 
                 Spacer()
 

@@ -5,7 +5,7 @@
 **PicS** 是一款 iOS 原生照片/视频快速清理工具。通过沉浸式的全屏滑动体验，像刷短视频一样快速清理手机中不需要的照片和视频。V1.2 Dungeon Edition 带来全面像素 RPG 主题视觉升级。
 
 <p align="center">
-  <img src="PicSwipe/Assets.xcassets/AppIcon.appiconset/AppIcon.png" width="128" height="128" alt="PicS Icon">
+  <img src="docs/icon.png" width="128" height="128" alt="PicS Icon">
 </p>
 
 ## ✨ 核心特性

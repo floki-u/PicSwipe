@@ -17,7 +17,7 @@ struct PermissionDeniedView: View {
                     Text("需要相册权限")
                         .font(.title2)
                         .fontWeight(.bold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.textPrimary)
 
                     Text("请前往系统设置，开启 PicSwipe 的相册访问权限")
                         .font(.subheadline)

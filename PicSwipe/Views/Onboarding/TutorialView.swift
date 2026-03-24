@@ -97,7 +97,7 @@ struct TutorialView: View {
                 HStack(spacing: Spacing.sm) {
                     Text(page.symbol)
                         .font(.pixel(10))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.textPrimary)
                     Text("=")
                         .font(.pixel(10))
                         .foregroundStyle(Color.textSecondary)
@@ -129,7 +129,7 @@ struct TutorialView: View {
         HStack(spacing: 8) {
             ForEach(0..<pages.count, id: \.self) { index in
                 Capsule()
-                    .fill(index == currentPage ? Color.brandPrimary : Color.white.opacity(0.3))
+                    .fill(index == currentPage ? Color.brandPrimary : Color.indicatorInactive)
                     .frame(width: index == currentPage ? 20 : 8, height: 8)
                     .animation(.easeInOut(duration: 0.2), value: currentPage)
             }
