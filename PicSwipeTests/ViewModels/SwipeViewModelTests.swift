@@ -7,16 +7,17 @@ final class SwipeViewModelTests: XCTestCase {
 
     // MARK: - 辅助方法
 
-    private func makeSession(assetCount: Int = 3) -> CleanSession {
+    private func makeSession(assetCount: Int = 3, mode: CleanMode = .photo) -> CleanSession {
+        let mediaType: PHAssetMediaType = mode == .photo ? .image : .video
         let assets = (0..<assetCount).map {
             AssetItem(
                 localIdentifier: "asset-\($0)",
                 fileSize: Int64($0 + 1) * 1024,
                 creationDate: Date(),
-                mediaType: .image
+                mediaType: mediaType
             )
         }
-        return CleanSession(mode: .photo, assets: assets)
+        return CleanSession(mode: mode, assets: assets)
     }
 
     // MARK: - 测试用例
