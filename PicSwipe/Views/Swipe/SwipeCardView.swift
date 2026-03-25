@@ -27,6 +27,13 @@ struct SwipeCardView: View {
     @State private var currentScale: CGFloat = 1.0
     @State private var lastScale: CGFloat = 1.0
 
+    // iCloud 下载状态
+    @State private var isDownloadingFromCloud: Bool = false
+    @State private var downloadProgress: Double = 0.0
+    @State private var loadError: ImageLoadError? = nil
+    @State private var imageRequestID: PHImageRequestID? = nil
+    @State private var timeoutTask: Task<Void, Never>? = nil
+
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -51,6 +58,13 @@ struct SwipeCardView: View {
                     height: geometry.size.height * UIScreen.main.scale
                 ))
             }
+            .onDisappear {
+                timeoutTask?.cancel()
+                timeoutTask = nil
+                if let requestID = imageRequestID {
+                    photoService.cancelImageRequest(requestID)
+                }
+            }
         }
         .ignoresSafeArea()
     }
@@ -60,19 +74,21 @@ struct SwipeCardView: View {
     @ViewBuilder
     private func photoContent(geometry: GeometryProxy) -> some View {
         if isLivePhoto, let livePhoto = livePhoto {
-            // Live Photo 展示
             LivePhotoView(livePhoto: livePhoto)
                 .frame(width: geometry.size.width, height: geometry.size.height)
                 .scaleEffect(currentScale)
                 .gesture(zoomGesture)
         } else if let image = image {
-            // 普通照片展示 — 原始比例，不裁切
             Image(uiImage: image)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: geometry.size.width, height: geometry.size.height)
                 .scaleEffect(currentScale)
                 .gesture(zoomGesture)
+        } else if loadError != nil {
+            iCloudErrorView()
+        } else if isDownloadingFromCloud {
+            iCloudDownloadingView()
         } else {
             Color.appBackground
             ProgressView()
@@ -176,13 +192,69 @@ struct SwipeCardView: View {
             }
     }
 
+    // MARK: - iCloud 状态视图
+
+    /// iCloud 下载中视图 — ☁️ 图标 + 进度条 + RPG 文案
+    @ViewBuilder
+    private func iCloudDownloadingView() -> some View {
+        Color.appBackground
+        VStack(spacing: Spacing.md) {
+            Image(systemName: "icloud.and.arrow.down")
+                .font(.system(size: 40))
+                .foregroundStyle(.white)
+
+            Text("DOWNLOADING FROM CLOUD...")
+                .font(.pixel(8))
+                .foregroundStyle(Color.textOnMedia)
+
+            VStack(spacing: Spacing.xs) {
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: CornerRadius.progressBar)
+                            .fill(Color.fillTertiary)
+                            .frame(height: 8)
+
+                        RoundedRectangle(cornerRadius: CornerRadius.progressBar)
+                            .fill(Color.brandPrimary)
+                            .frame(width: geo.size.width * downloadProgress, height: 8)
+                            .animation(.easeInOut(duration: 0.3), value: downloadProgress)
+                    }
+                }
+                .frame(height: 8)
+
+                Text("\(Int(downloadProgress * 100))%")
+                    .font(.pixel(8))
+                    .foregroundStyle(Color.textSecondary)
+            }
+            .frame(width: 200)
+        }
+    }
+
+    /// iCloud 加载失败视图 — ❌ 图标 + 错误文案 + 跳过提示
+    @ViewBuilder
+    private func iCloudErrorView() -> some View {
+        Color.appBackground
+        VStack(spacing: Spacing.md) {
+            Image(systemName: "xmark.icloud")
+                .font(.system(size: 40))
+                .foregroundStyle(Color.destructiveRed)
+
+            Text("QUEST FAILED")
+                .font(.pixel(10))
+                .foregroundStyle(Color.destructiveRed)
+
+            Text("SWIPE UP TO SKIP")
+                .font(.pixel(8))
+                .foregroundStyle(Color.textSecondary)
+        }
+    }
+
     // MARK: - 内容加载
 
     private func loadContent(targetSize: CGSize) {
         guard let phAsset = asset.phAsset else { return }
 
         if asset.mediaType == .video {
-            // 视频：加载缩略图作为占位
             _ = photoService.requestImage(for: phAsset, targetSize: targetSize) { loadedImage in
                 DispatchQueue.main.async {
                     self.image = loadedImage
@@ -191,16 +263,46 @@ struct SwipeCardView: View {
             return
         }
 
-        // 检测是否为 Live Photo
         if phAsset.mediaSubtypes.contains(.photoLive) {
             isLivePhoto = true
             loadLivePhoto(phAsset: phAsset, targetSize: targetSize)
         }
 
-        // 同时加载静态图（作为 fallback 或加载中显示）
-        _ = photoService.requestImage(for: phAsset, targetSize: targetSize) { loadedImage in
+        let requestID = photoService.requestImage(
+            for: phAsset,
+            targetSize: targetSize,
+            progressHandler: { progress in
+                self.isDownloadingFromCloud = true
+                self.downloadProgress = progress
+            }
+        ) { loadedImage, error in
             DispatchQueue.main.async {
-                self.image = loadedImage
+                guard self.loadError == nil else { return }
+
+                self.timeoutTask?.cancel()
+                self.timeoutTask = nil
+
+                if let loadedImage = loadedImage {
+                    self.image = loadedImage
+                    self.isDownloadingFromCloud = false
+                } else if let error = error {
+                    self.loadError = error
+                    self.isDownloadingFromCloud = false
+                }
+            }
+        }
+        imageRequestID = requestID
+
+        timeoutTask = Task {
+            try? await Task.sleep(for: .seconds(15))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                guard self.image == nil, self.loadError == nil else { return }
+                if let requestID = self.imageRequestID {
+                    self.photoService.cancelImageRequest(requestID)
+                }
+                self.loadError = .timeout
+                self.isDownloadingFromCloud = false
             }
         }
     }
