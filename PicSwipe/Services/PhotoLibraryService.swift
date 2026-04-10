@@ -10,6 +10,13 @@ struct AlbumInfo: Identifiable, Hashable {
     let count: Int
 }
 
+/// 图片加载错误类型
+enum ImageLoadError {
+    case iCloudDownloadFailed
+    case timeout
+    case unknown
+}
+
 @Observable
 final class PhotoLibraryService {
 
@@ -267,6 +274,53 @@ final class PhotoLibraryService {
 
     private let imageManager = PHCachingImageManager()
 
+    /// 增强的图片请求方法，支持 iCloud 下载进度回调
+    @discardableResult
+    func requestImage(
+        for asset: PHAsset,
+        targetSize: CGSize,
+        contentMode: PHImageContentMode = .aspectFill,
+        progressHandler: ((Double) -> Void)? = nil,
+        completion: @escaping (UIImage?, ImageLoadError?) -> Void
+    ) -> PHImageRequestID {
+        let options = PHImageRequestOptions()
+        options.deliveryMode = .opportunistic
+        options.isNetworkAccessAllowed = true
+        options.resizeMode = .fast
+
+        if let progressHandler = progressHandler {
+            options.progressHandler = { progress, _, _, _ in
+                DispatchQueue.main.async {
+                    progressHandler(progress)
+                }
+            }
+        }
+
+        return imageManager.requestImage(
+            for: asset,
+            targetSize: targetSize,
+            contentMode: contentMode,
+            options: options
+        ) { image, info in
+            let isDegraded = (info?[PHImageResultIsDegradedKey] as? Bool) ?? false
+            if isDegraded && image != nil {
+                return
+            }
+            if let image = image {
+                completion(image, nil)
+            } else {
+                let error = info?[PHImageErrorKey] as? NSError
+                if error != nil {
+                    completion(nil, .iCloudDownloadFailed)
+                } else {
+                    completion(nil, .unknown)
+                }
+            }
+        }
+    }
+
+    /// 便利方法 — 保持原有 API 签名和降级缩略图行为
+    @discardableResult
     func requestImage(
         for asset: PHAsset,
         targetSize: CGSize,
@@ -288,6 +342,11 @@ final class PhotoLibraryService {
                 completion(image)
             }
         }
+    }
+
+    /// 取消图片请求
+    func cancelImageRequest(_ requestID: PHImageRequestID) {
+        imageManager.cancelImageRequest(requestID)
     }
 
     func startCaching(assets: [PHAsset], targetSize: CGSize) {
